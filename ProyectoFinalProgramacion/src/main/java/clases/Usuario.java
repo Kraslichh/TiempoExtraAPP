@@ -3,9 +3,16 @@ package clases;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
+import conector.DatabaseConnector;
+import excepciones.ConexionFallidaException;
 
 public class Usuario extends ElementoConNombre {
     
@@ -111,5 +118,35 @@ public class Usuario extends ElementoConNombre {
     }
 
     // Los métodos iniciar_sesion(), cerrar_sesion() y registrar_usuario() deben implementarse según la lógica de tu aplicación.
+    public void iniciar_sesion(String username, String password) {
+        // Supongamos que tienes un objeto de conexión a la base de datos
+        Connection connection = null;
+		try {
+			connection = DatabaseConnector.getConnection();
+		} catch (ConexionFallidaException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
+        String query = "SELECT * FROM usuario WHERE nombreUsuario = ? AND contraseña = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, username);
+            statement.setString(2, password);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                System.out.println("Inicio de sesión exitoso!");
+                // Aquí puedes establecer las propiedades del usuario en la instancia actual
+                // desde los resultados de la consulta a la base de datos.
+            } else {
+                System.out.println("Nombre de usuario o contraseña incorrectos!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
 }

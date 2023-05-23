@@ -34,16 +34,40 @@ public class Main {
             e.printStackTrace();
         }
 
-        // Botón para iniciar sesión
+     // Botón para iniciar sesión
         JButton loginButton = new JButton("Iniciar Sesión");
         loginButton.setBounds(100, 700, 200, 50);
         panel.add(loginButton);
         loginButton.addActionListener(e -> {
-            // Acción al presionar el botón
-            // Por ejemplo, abrir el diálogo de inicio de sesión
-            // ...
-        });
+            // Aquí creas e inicias un nuevo JFrame para el inicio de sesión
+            JFrame loginFrame = new JFrame("Inicio de Sesión");
 
+            // Aquí puedes agregar campos de texto para la entrada de usuario y contraseña
+            JTextField usernameField = new JTextField();
+            usernameField.setBounds(50, 50, 200, 30);
+            loginFrame.add(usernameField);
+
+            JPasswordField passwordField = new JPasswordField();
+            passwordField.setBounds(50, 100, 200, 30);
+            loginFrame.add(passwordField);
+
+            // Botón de inicio de sesión en la nueva ventana
+            JButton loginConfirmButton = new JButton("Iniciar Sesión");
+            loginConfirmButton.setBounds(50, 150, 200, 30);
+            loginConfirmButton.addActionListener(e1 -> {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                // Aquí llamas a tu método de inicio de sesión
+                Usuario usuario = new Usuario(password, password, password, false, false);
+                usuario.iniciar_sesion(username, password);
+            });
+            loginFrame.add(loginConfirmButton);
+
+            loginFrame.setSize(300, 300);
+            loginFrame.setLayout(null);
+            loginFrame.setVisible(true);
+        });
         // Botón para registrarse
         JButton registerButton = new JButton("Registrarse");
         registerButton.setBounds(500, 700, 200, 50);

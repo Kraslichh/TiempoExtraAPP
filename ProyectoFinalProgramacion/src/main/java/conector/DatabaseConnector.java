@@ -9,9 +9,9 @@ public class DatabaseConnector {
 
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/tiempoextrabd";
     private static final String DATABASE_USER = "root";
-    private static final String DATABASE_PASSWORD = "password";
+    private static final String DATABASE_PASSWORD = "";
 
-    public Connection getConnection() throws ConexionFallidaException {
+    public static Connection getConnection() throws ConexionFallidaException {
         try {
             Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
             // Aquí simplemente retornamos la conexión. No lanzamos una excepción.
