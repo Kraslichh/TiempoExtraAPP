@@ -12,62 +12,28 @@ import java.util.HashSet;
 import java.util.List;
 
 import conector.DatabaseConnector;
+import enumeraciones.Categoria;
 import excepciones.ConexionFallidaException;
 
 public class Usuario extends ElementoConNombre {
-    //Atributos
+    // Atributos
     private String nombreUsuario;
     private String contraseña;
     private boolean isEditor;
     private boolean isAdmin;
     private HashSet<Suscripcion> suscripcionesActivas;
     private List<Noticia> noticiasCreadas;
-//Constructores junto a la creacion de la escritura del fichero DatosColecciones.log.
+
+    // Constructores
     public Usuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) {
         super(nombre);
         this.nombreUsuario = nombreUsuario;
         this.contraseña = contraseña;
         this.isEditor = isEditor;
         this.isAdmin = isAdmin;
-        this.suscripcionesActivas = new HashSet<Suscripcion>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean add(Suscripcion suscripcion) {
-                boolean added = super.add(suscripcion);
-                if (added) {
-                    try (PrintWriter out = new PrintWriter(new FileWriter("DatosColecciones.log", true))) {
-                        out.println("Nueva suscripcion agregada: " + suscripcion.toString());
-                    } catch (IOException e) {
-                        System.out.println("Error escribiendo en el archivo");
-                        e.printStackTrace();
-                    }
-                }
-                return added;
-            }
-            
-        };
-
-//Aqui creamos que el programa pueda escribir en el fichero cada vez que un usuario cree una noticia
-        this.noticiasCreadas = new ArrayList<Noticia>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean add(Noticia noticia) {
-                boolean added = super.add(noticia);
-                if (added) {
-                    try (PrintWriter out = new PrintWriter(new FileWriter("DatosColecciones.log", true))) {
-                        out.println("Nueva noticia agregada: " + noticia.toString());
-                    } catch (IOException e) {
-                        System.out.println("Error escribiendo en el archivo");
-                        e.printStackTrace();
-                    }
-                }
-                return added;
-            }
-        };
+        this.suscripcionesActivas = new HashSet<>();
+        this.noticiasCreadas = new ArrayList<>();
     }
-    
 
     // Getters y Setters
 
@@ -114,8 +80,37 @@ public class Usuario extends ElementoConNombre {
     public void removeSuscripcion(Suscripcion suscripcion) {
         this.suscripcionesActivas.remove(suscripcion);
     }
-    
-    public List<Noticia> getNoticiasCreadas() {
+
+    public List<Noticia> getNoticiasCreadas() throws ConexionFallidaException {
+        // Consulta SQL para obtener las noticias creadas por el usuario
+        String sql = "SELECT * FROM noticia WHERE autor_id IN (SELECT id FROM usuario WHERE nombreUsuario = ?)";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, this.nombreUsuario);
+
+            ResultSet rs = stmt.executeQuery();
+
+            // Limpiar la lista actual antes de cargar las noticias desde la base de datos
+            noticiasCreadas.clear();
+
+            // Procesar el ResultSet y cargar las noticias en la lista
+            while (rs.next()) {
+                Noticia noticia = new Noticia(
+                    rs.getString("elementoConNombre_nombre"),
+                    rs.getString("contenido"),
+                    rs.getTimestamp("fechaPublicacion").toLocalDateTime(),
+                    this,  // Autor
+                    Categoria.valueOf(rs.getString("categoria")),
+                    rs.getBoolean("noticiaPremium")
+                );
+                noticiasCreadas.add(noticia);
+            }
+        } catch (SQLException e) {
+            throw new ConexionFallidaException("Error al obtener las noticias creadas: " + e.getMessage());
+        }
+
         return noticiasCreadas;
     }
 
@@ -158,28 +153,53 @@ public class Usuario extends ElementoConNombre {
 
     public static void registrar_usuario(String nombreUsuario, String contraseña) throws SQLException, ConexionFallidaException {
         try (Connection connection = DatabaseConnector.getConnection()) {
-			// Verifica si el nombre de usuario ya existe
-			String checkQuery = "SELECT * FROM Usuario WHERE nombreUsuario = ?";
-			PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
-			checkStatement.setString(1, nombreUsuario);
-			ResultSet resultSet = checkStatement.executeQuery();
-			if (resultSet.next()) {
-			    throw new SQLException("El nombre de usuario ya existe");
-			}
-			
-			String query = "INSERT INTO Usuario (nombreUsuario, contraseña, isAdmin, isEditor) VALUES (?, ?, ?, ?)";
-			PreparedStatement statement = connection.prepareStatement(query);
-			statement.setString(1, nombreUsuario);
-			statement.setString(2, contraseña);
-			statement.setBoolean(3, false); // isAdmin siempre se establece en false al registrarse
-			statement.setBoolean(4, false); // isEditor siempre se establece en false al registrarse
-			int rowsInserted = statement.executeUpdate();
-			if (rowsInserted > 0) {
-			    System.out.println("Usuario registrado exitosamente!");
-			}
-			connection.close();
-		}
+            // Verifica si el nombre de usuario ya existe
+            String checkQuery = "SELECT * FROM Usuario WHERE nombreUsuario = ?";
+            PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+            checkStatement.setString(1, nombreUsuario);
+            ResultSet resultSet = checkStatement.executeQuery();
+            if (resultSet.next()) {
+                throw new SQLException("El nombre de usuario ya existe");
+            }
+
+            String query = "INSERT INTO Usuario (nombreUsuario, contraseña, isAdmin, isEditor) VALUES (?, ?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, nombreUsuario);
+            statement.setString(2, contraseña);
+            statement.setBoolean(3, false); // isAdmin siempre se establece en false al registrarse
+            statement.setBoolean(4, false); // isEditor siempre se establece en false al registrarse
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("Usuario registrado exitosamente!");
+            }
+            connection.close();
+        }
     }
+
+    public static int getIdPorNombreUsuario(String nombreUsuario) throws ConexionFallidaException {
+        // Consulta SQL para obtener el ID del usuario por su nombre de usuario
+        String sql = "SELECT id FROM usuario WHERE nombreUsuario = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, nombreUsuario);
+
+            // Ejecutar la consulta SQL
+            ResultSet rs = stmt.executeQuery();
+
+            // Verificar si se encontró el ID del usuario
+            if (rs.next()) {
+                return rs.getInt("id");
+            } else {
+                throw new ConexionFallidaException("No se pudo obtener el ID del usuario.");
+            }
+
+        } catch (SQLException e) {
+            throw new ConexionFallidaException("Error al obtener el ID del usuario: " + e.getMessage());
+        }
+    }
+    
     // Método para obtener un Usuario dado su ID
     public static Usuario getUsuarioPorId(int id) {
         // Consulta SQL para obtener el usuario con el ID dado
@@ -197,11 +217,11 @@ public class Usuario extends ElementoConNombre {
             // Si hay un resultado, crear un nuevo Usuario y retornarlo
             if (rs.next()) {
                 return new Usuario(
-                    rs.getString("elementoConNombre_nombre"),
-                    rs.getString("nombreUsuario"),
-                    rs.getString("contraseña"),
-                    rs.getBoolean("isEditor"),
-                    rs.getBoolean("isAdmin")
+                        rs.getString("elementoConNombre_nombre"),
+                        rs.getString("nombreUsuario"),
+                        rs.getString("contraseña"),
+                        rs.getBoolean("isEditor"),
+                        rs.getBoolean("isAdmin")
                 );
             }
 
@@ -213,30 +233,4 @@ public class Usuario extends ElementoConNombre {
         return null;
     }
 
-    public static int getIdPorNombreUsuario(String nombreUsuario) {
-        String sql = "SELECT id FROM usuario WHERE nombreUsuario = ?";
-        int id = -1;
-
-        try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Establecer el parámetro del nombre de usuario en la consulta SQL
-            stmt.setString(1, nombreUsuario);
-
-            // Ejecutar la consulta SQL y obtener los resultados
-            ResultSet rs = stmt.executeQuery();
-
-            // Si hay un resultado, obtener el id del usuario
-            if (rs.next()) {
-                id = rs.getInt("id");
-            }
-
-        } catch (SQLException | ConexionFallidaException e) {
-            System.out.println("Error al obtener el ID del usuario: " + e.getMessage());
-        }
-
-        // Si no se encontró ningún usuario, retornar -1
-        return id;
-    }
 }
-
