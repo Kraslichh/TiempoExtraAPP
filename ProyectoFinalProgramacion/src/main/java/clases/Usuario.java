@@ -1,6 +1,11 @@
 package clases;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class Usuario extends ElementoConNombre {
     
@@ -9,6 +14,7 @@ public class Usuario extends ElementoConNombre {
     private boolean isEditor;
     private boolean isAdmin;
     private HashSet<Suscripcion> suscripcionesActivas;
+    private List<Noticia> noticiasCreadas;
 
     public Usuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) {
         super(nombre);
@@ -16,8 +22,39 @@ public class Usuario extends ElementoConNombre {
         this.contraseña = contraseña;
         this.isEditor = isEditor;
         this.isAdmin = isAdmin;
-        this.suscripcionesActivas = new HashSet<>();
+        this.suscripcionesActivas = new HashSet<Suscripcion>() {
+            @Override
+            public boolean add(Suscripcion suscripcion) {
+                boolean added = super.add(suscripcion);
+                if (added) {
+                    try (PrintWriter out = new PrintWriter(new FileWriter("DatosColecciones.log", true))) {
+                        out.println("Nueva suscripcion agregada: " + suscripcion.toString());
+                    } catch (IOException e) {
+                        System.out.println("Error escribiendo en el archivo");
+                        e.printStackTrace();
+                    }
+                }
+                return added;
+            }
+        };
+
+        this.noticiasCreadas = new ArrayList<Noticia>() {
+            @Override
+            public boolean add(Noticia noticia) {
+                boolean added = super.add(noticia);
+                if (added) {
+                    try (PrintWriter out = new PrintWriter(new FileWriter("DatosColecciones.log", true))) {
+                        out.println("Nueva noticia agregada: " + noticia.toString());
+                    } catch (IOException e) {
+                        System.out.println("Error escribiendo en el archivo");
+                        e.printStackTrace();
+                    }
+                }
+                return added;
+            }
+        };
     }
+    
 
     // Getters and Setters
 
@@ -63,6 +100,14 @@ public class Usuario extends ElementoConNombre {
 
     public void removeSuscripcion(Suscripcion suscripcion) {
         this.suscripcionesActivas.remove(suscripcion);
+    }
+    
+    public List<Noticia> getNoticiasCreadas() {
+        return noticiasCreadas;
+    }
+
+    public void setNoticiasCreadas(List<Noticia> noticiasCreadas) {
+        this.noticiasCreadas = noticiasCreadas;
     }
 
     // Los métodos iniciar_sesion(), cerrar_sesion() y registrar_usuario() deben implementarse según la lógica de tu aplicación.
