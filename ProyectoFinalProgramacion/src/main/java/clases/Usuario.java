@@ -43,7 +43,9 @@ public class Usuario extends ElementoConNombre {
                 }
                 return added;
             }
+            
         };
+
 //Aqui creamos que el programa pueda escribir en el fichero cada vez que un usuario cree una noticia
         this.noticiasCreadas = new ArrayList<Noticia>() {
             @Override
@@ -149,4 +151,31 @@ public class Usuario extends ElementoConNombre {
             e.printStackTrace();
         }
     }
+    public static void registrar_usuario(String nombreUsuario, String contraseña) throws SQLException, ConexionFallidaException {
+        // Crear conexión a la base de datos
+        DatabaseConnector dbConnector = new DatabaseConnector();
+        Connection connection = dbConnector.getConnection();
+        
+        // Verifica si el nombre de usuario ya existe
+        String checkQuery = "SELECT * FROM Usuario WHERE nombreUsuario = ?";
+        PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+        checkStatement.setString(1, nombreUsuario);
+        ResultSet resultSet = checkStatement.executeQuery();
+        if (resultSet.next()) {
+            throw new SQLException("El nombre de usuario ya existe");
+        }
+        
+        String query = "INSERT INTO Usuario (nombreUsuario, contraseña, isAdmin, isEditor) VALUES (?, ?, ?, ?)";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, nombreUsuario);
+        statement.setString(2, contraseña);
+        statement.setBoolean(3, false); // isAdmin siempre se establece en false al registrarse
+        statement.setBoolean(4, false); // isEditor siempre se establece en false al registrarse
+        int rowsInserted = statement.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("Usuario registrado exitosamente!");
+        }
+        connection.close();
+    }
+
 }
