@@ -155,6 +155,7 @@ public class Usuario extends ElementoConNombre {
             e.printStackTrace();
         }
     }
+
     public static void registrar_usuario(String nombreUsuario, String contraseña) throws SQLException, ConexionFallidaException {
         try (Connection connection = DatabaseConnector.getConnection()) {
 			// Verifica si el nombre de usuario ya existe

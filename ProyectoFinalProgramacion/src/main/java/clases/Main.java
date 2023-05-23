@@ -88,24 +88,10 @@ public class Main {
                     userWindow.setSize(1200, 800);
                     userWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-                 // Agregar un botón para cerrar la sesión
+                    // Agregar un botón para cerrar la sesión
                     JButton logoutButton = new JButton("Cerrar Sesión");
                     logoutButton.setBounds(1000, 50, 150, 30);
                     userWindow.add(logoutButton);
-
-                    logoutButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            // Realizar acciones para cerrar la sesión
-                            // Por ejemplo, volver a mostrar la ventana de inicio de sesión y cerrar la ventana actual
-
-                            // Mostrar la ventana de inicio de sesión
-                            frame.setVisible(true);
-
-                            // Cerrar la ventana actual
-                            userWindow.dispose();
-                        }
-                    });
 
                     // Agregar un botón para crear noticias solo para usuarios con isEditor activo
                     if (usuario.isEditor()) {
