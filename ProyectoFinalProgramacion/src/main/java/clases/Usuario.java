@@ -15,14 +15,14 @@ import conector.DatabaseConnector;
 import excepciones.ConexionFallidaException;
 
 public class Usuario extends ElementoConNombre {
-    
+    //Atributos
     private String nombreUsuario;
     private String contraseña;
     private boolean isEditor;
     private boolean isAdmin;
     private HashSet<Suscripcion> suscripcionesActivas;
     private List<Noticia> noticiasCreadas;
-
+//Constructores junto a la creacion de la escritura del fichero DatosColecciones.log.
     public Usuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) {
         super(nombre);
         this.nombreUsuario = nombreUsuario;
@@ -44,7 +44,7 @@ public class Usuario extends ElementoConNombre {
                 return added;
             }
         };
-
+//Aqui creamos que el programa pueda escribir en el fichero cada vez que un usuario cree una noticia
         this.noticiasCreadas = new ArrayList<Noticia>() {
             @Override
             public boolean add(Noticia noticia) {
@@ -63,7 +63,7 @@ public class Usuario extends ElementoConNombre {
     }
     
 
-    // Getters and Setters
+    // Getters y Setters
 
     public String getNombreUsuario() {
         return nombreUsuario;
@@ -128,6 +128,8 @@ public class Usuario extends ElementoConNombre {
 			e1.printStackTrace();
 		}
 
+		//Aqui almacenamos en una variable String llamada query la linea de SQL donde modificaremos
+		//o en este caso selecionaremos
         String query = "SELECT * FROM usuario WHERE nombreUsuario = ? AND contraseña = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -136,17 +138,15 @@ public class Usuario extends ElementoConNombre {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                System.out.println("Inicio de sesión exitoso!");
+                System.out.println("¡Inicio de sesión exitoso!");
                 // Aquí puedes establecer las propiedades del usuario en la instancia actual
                 // desde los resultados de la consulta a la base de datos.
             } else {
-                System.out.println("Nombre de usuario o contraseña incorrectos!");
+                System.out.println("¡Nombre de usuario o contraseña incorrectos!");
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    
-    
 }

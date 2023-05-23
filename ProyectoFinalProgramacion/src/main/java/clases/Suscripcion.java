@@ -3,11 +3,13 @@ import enumeraciones.Categoria;
 import java.time.LocalDate;
 
 public class Suscripcion extends ElementoConNombre {
+	//Atributos
     private float precioPorMes;
     private Categoria categoria;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
 
+    //Constructor
     public Suscripcion(String nombre, float precioPorMes, Categoria categoria, LocalDate fechaInicio, LocalDate fechaFin) {
         super(nombre);
         this.precioPorMes = precioPorMes;
@@ -16,7 +18,7 @@ public class Suscripcion extends ElementoConNombre {
         this.fechaFin = fechaFin;
     }
 
-    // Getters and Setters
+    // Getters y Setters
     public float getPrecioPorMes() {
         return precioPorMes;
     }

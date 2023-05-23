@@ -3,13 +3,13 @@ import java.time.LocalDateTime;
 import enumeraciones.Categoria;
 
 public class Noticia extends ElementoConNombre {
-
+//Atributos
     private String contenido;
     private LocalDateTime fechaPublicacion;
     private Usuario autor;
     private Categoria categoria;
     private boolean noticiaPremium;
-
+//Constructor
     public Noticia(String nombre, String contenido, LocalDateTime fechaPublicacion, Usuario autor, Categoria categoria, boolean noticiaPremium) {
         super(nombre);
         this.contenido = contenido;

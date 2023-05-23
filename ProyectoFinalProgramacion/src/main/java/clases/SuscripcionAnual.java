@@ -4,14 +4,15 @@ import java.time.LocalDate;
 import enumeraciones.Categoria;
 
 public class SuscripcionAnual extends Suscripcion {
+	//Atributo
     private float descuento;
-
+//Constructor
     public SuscripcionAnual(String nombre, float precioPorMes, Categoria categoria, LocalDate fechaInicio, LocalDate fechaFin, float descuento) {
         super(nombre, precioPorMes, categoria, fechaInicio, fechaFin);
         this.descuento = descuento;
     }
 
-    // Getters and Setters
+    // Getters y Setters
     public float getDescuento() {
         return descuento;
     }

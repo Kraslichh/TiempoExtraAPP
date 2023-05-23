@@ -39,10 +39,10 @@ public class Main {
         loginButton.setBounds(100, 700, 200, 50);
         panel.add(loginButton);
         loginButton.addActionListener(e -> {
-            // Aquí creas e inicias un nuevo JFrame para el inicio de sesión
+            //creamos e iniciamos un nuevo JFrame para el inicio de sesión
             JFrame loginFrame = new JFrame("Inicio de Sesión");
 
-            // Aquí puedes agregar campos de texto para la entrada de usuario y contraseña
+            //Agregamos campos de texto para la entrada de usuario y contraseña
             JTextField usernameField = new JTextField();
             usernameField.setBounds(50, 50, 200, 30);
             loginFrame.add(usernameField);
@@ -58,7 +58,7 @@ public class Main {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
-                // Aquí llamas a tu método de inicio de sesión
+                // Aquí llamamo al método de inicio de sesión
                 Usuario usuario = new Usuario(password, password, password, false, false);
                 usuario.iniciar_sesion(username, password);
             });
