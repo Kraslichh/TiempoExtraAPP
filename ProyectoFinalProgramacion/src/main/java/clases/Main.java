@@ -3,12 +3,15 @@ package clases;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import excepciones.ConexionFallidaException;
+import enumeraciones.Categoria;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -43,7 +46,7 @@ public class Main {
         loginButton.setBounds(100, 700, 200, 50);
         panel.add(loginButton);
         loginButton.addActionListener(e -> {
-            //creamos e iniciamos un nuevo JFrame para el inicio de sesión
+            // Creamos e iniciamos un nuevo JFrame para el inicio de sesión
             JFrame loginFrame = new JFrame("Inicio de Sesión");
 
             // Campos de texto para el nombre de usuario y la contraseña
@@ -63,7 +66,7 @@ public class Main {
             passwordField.setBounds(50, 100, 200, 30);
             loginFrame.add(passwordField);
 
-         // Botón de inicio de sesión en la nueva ventana
+            // Botón de inicio de sesión en la nueva ventana
             JButton loginConfirmButton = new JButton("Iniciar Sesión");
             loginConfirmButton.setBounds(50, 150, 200, 30);
             loginConfirmButton.addActionListener(e1 -> {
@@ -74,29 +77,99 @@ public class Main {
                 Usuario usuario = new Usuario(username, username, password, false, false);
 
                 // Intentar iniciar sesión
-                usuario.iniciar_sesion(username, password);
+                try {
+                    usuario.iniciar_sesion(username, password);
 
-                // Si la línea anterior no lanza una excepción, la autenticación fue exitosa
-                loginFrame.dispose(); // cerrar la ventana de inicio de sesión
+                    // Si la línea anterior no lanza una excepción, la autenticación fue exitosa
+                    loginFrame.dispose(); // Cerrar la ventana de inicio de sesión
 
-                // Crear una nueva ventana después de iniciar sesión
-                JFrame userWindow = new JFrame("Bienvenido, " + username);
-                userWindow.setSize(1200, 800);
-                userWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    // Crear una nueva ventana después de iniciar sesión
+                    JFrame userWindow = new JFrame("Bienvenido, " + username);
+                    userWindow.setSize(1200, 800);
+                    userWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-                // Agregar un botón para cerrar la sesión
-                JButton logoutButton = new JButton("Cerrar Sesión");
-                logoutButton.setBounds(1000, 50, 150, 30);
-                userWindow.add(logoutButton);
+                 // Agregar un botón para cerrar la sesión
+                    JButton logoutButton = new JButton("Cerrar Sesión");
+                    logoutButton.setBounds(1000, 50, 150, 30);
+                    userWindow.add(logoutButton);
 
-                // Acción al presionar el botón de cerrar sesión
-                logoutButton.addActionListener(e2 -> {
-                    userWindow.dispose(); // cerrar la ventana de usuario
-                    frame.setVisible(true); // mostrar la ventana principal de inicio de sesión
-                });
+                    logoutButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Realizar acciones para cerrar la sesión
+                            // Por ejemplo, volver a mostrar la ventana de inicio de sesión y cerrar la ventana actual
 
-                userWindow.setLayout(null);
-                userWindow.setVisible(true);
+                            // Mostrar la ventana de inicio de sesión
+                            frame.setVisible(true);
+
+                            // Cerrar la ventana actual
+                            userWindow.dispose();
+                        }
+                    });
+
+                    // Agregar un botón para crear noticias solo para usuarios con isEditor activo
+                    if (usuario.isEditor()) {
+                        JButton createNewsButton = new JButton("Crear Noticia");
+                        createNewsButton.setBounds(1000, 100, 150, 30);
+                        userWindow.add(createNewsButton);
+
+                        createNewsButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Abrir una nueva ventana para introducir los detalles de la noticia
+                                JFrame createNewsFrame = new JFrame("Crear Noticia");
+                                createNewsFrame.setSize(500, 500);
+                                createNewsFrame.setLayout(new FlowLayout());
+
+                                // Campos de texto para los detalles de la noticia
+                                JTextField titleField = new JTextField(20);
+                                JTextArea contentArea = new JTextArea(5, 20);
+                                JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
+                                JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium");
+
+                                // Añadir los campos a la ventana
+                                createNewsFrame.add(new JLabel("Título:"));
+                                createNewsFrame.add(titleField);
+                                createNewsFrame.add(new JLabel("Contenido:"));
+                                createNewsFrame.add(contentArea);
+                                createNewsFrame.add(new JLabel("Categoría:"));
+                                createNewsFrame.add(categoryBox);
+                                createNewsFrame.add(premiumCheckBox);
+
+                                // Botón para confirmar la creación de la noticia
+                                JButton confirmButton = new JButton("Crear Noticia");
+                                confirmButton.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        // Llamar al método crear_noticia() con los valores introducidos
+                                        try {
+                                            Noticia.crear_noticia(
+                                                    titleField.getText(),
+                                                    contentArea.getText(),
+                                                    LocalDateTime.now(),
+                                                    usuario,
+                                                    (Categoria) categoryBox.getSelectedItem(),
+                                                    premiumCheckBox.isSelected()
+                                            );
+                                            JOptionPane.showMessageDialog(createNewsFrame, "Noticia creada exitosamente");
+                                            createNewsFrame.dispose(); // Cerrar la ventana de creación de noticia
+                                        } catch (Exception ex) {
+                                            JOptionPane.showMessageDialog(createNewsFrame, "Error al crear noticia: " + ex.getMessage());
+                                        }
+                                    }
+                                });
+
+                                createNewsFrame.add(confirmButton);
+                                createNewsFrame.setVisible(true);
+                            }
+                        });
+                    }
+
+                    userWindow.setLayout(null);
+                    userWindow.setVisible(true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             });
             loginFrame.add(loginConfirmButton);
 
@@ -143,8 +216,8 @@ public class Main {
                 try {
                     Usuario.registrar_usuario(username, password);
                     JOptionPane.showMessageDialog(null, "Usuario registrado correctamente");
-                    registerFrame.dispose(); // cerrar la ventana de registro
-                } catch (SQLException | ConexionFallidaException ex) {
+                    registerFrame.dispose(); // Cerrar la ventana de registro
+                } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "Error en el registro: " + ex.getMessage());
                 }
             });

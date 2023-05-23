@@ -30,7 +30,9 @@ public class Usuario extends ElementoConNombre {
         this.isEditor = isEditor;
         this.isAdmin = isAdmin;
         this.suscripcionesActivas = new HashSet<Suscripcion>() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean add(Suscripcion suscripcion) {
                 boolean added = super.add(suscripcion);
                 if (added) {
@@ -48,7 +50,9 @@ public class Usuario extends ElementoConNombre {
 
 //Aqui creamos que el programa pueda escribir en el fichero cada vez que un usuario cree una noticia
         this.noticiasCreadas = new ArrayList<Noticia>() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean add(Noticia noticia) {
                 boolean added = super.add(noticia);
                 if (added) {
@@ -123,15 +127,14 @@ public class Usuario extends ElementoConNombre {
     public void iniciar_sesion(String username, String password) {
         // Supongamos que tienes un objeto de conexión a la base de datos
         Connection connection = null;
-		try {
-			connection = DatabaseConnector.getConnection();
-		} catch (ConexionFallidaException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+        try {
+            connection = DatabaseConnector.getConnection();
+        } catch (ConexionFallidaException e1) {
+            e1.printStackTrace();
+        }
 
-		//Aqui almacenamos en una variable String llamada query la linea de SQL donde modificaremos
-		//o en este caso selecionaremos
+        // Aquí almacenamos en una variable String llamada query la línea de SQL donde modificaremos
+        // o en este caso seleccionaremos
         String query = "SELECT * FROM usuario WHERE nombreUsuario = ? AND contraseña = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -141,8 +144,9 @@ public class Usuario extends ElementoConNombre {
 
             if (resultSet.next()) {
                 System.out.println("¡Inicio de sesión exitoso!");
-                // Aquí puedes establecer las propiedades del usuario en la instancia actual
-                // desde los resultados de la consulta a la base de datos.
+                // Establecer las propiedades del usuario según los resultados de la consulta
+                this.isEditor = resultSet.getBoolean("isEditor");
+                this.isAdmin = resultSet.getBoolean("isAdmin");
             } else {
                 System.out.println("¡Nombre de usuario o contraseña incorrectos!");
             }
@@ -152,30 +156,86 @@ public class Usuario extends ElementoConNombre {
         }
     }
     public static void registrar_usuario(String nombreUsuario, String contraseña) throws SQLException, ConexionFallidaException {
-        // Crear conexión a la base de datos
-        DatabaseConnector dbConnector = new DatabaseConnector();
-        Connection connection = dbConnector.getConnection();
-        
-        // Verifica si el nombre de usuario ya existe
-        String checkQuery = "SELECT * FROM Usuario WHERE nombreUsuario = ?";
-        PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
-        checkStatement.setString(1, nombreUsuario);
-        ResultSet resultSet = checkStatement.executeQuery();
-        if (resultSet.next()) {
-            throw new SQLException("El nombre de usuario ya existe");
+        try (Connection connection = DatabaseConnector.getConnection()) {
+			// Verifica si el nombre de usuario ya existe
+			String checkQuery = "SELECT * FROM Usuario WHERE nombreUsuario = ?";
+			PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+			checkStatement.setString(1, nombreUsuario);
+			ResultSet resultSet = checkStatement.executeQuery();
+			if (resultSet.next()) {
+			    throw new SQLException("El nombre de usuario ya existe");
+			}
+			
+			String query = "INSERT INTO Usuario (nombreUsuario, contraseña, isAdmin, isEditor) VALUES (?, ?, ?, ?)";
+			PreparedStatement statement = connection.prepareStatement(query);
+			statement.setString(1, nombreUsuario);
+			statement.setString(2, contraseña);
+			statement.setBoolean(3, false); // isAdmin siempre se establece en false al registrarse
+			statement.setBoolean(4, false); // isEditor siempre se establece en false al registrarse
+			int rowsInserted = statement.executeUpdate();
+			if (rowsInserted > 0) {
+			    System.out.println("Usuario registrado exitosamente!");
+			}
+			connection.close();
+		}
+    }
+    // Método para obtener un Usuario dado su ID
+    public static Usuario getUsuarioPorId(int id) {
+        // Consulta SQL para obtener el usuario con el ID dado
+        String sql = "SELECT * FROM usuario WHERE id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Establecer el parámetro del ID en la consulta SQL
+            stmt.setInt(1, id);
+
+            // Ejecutar la consulta SQL y obtener los resultados
+            ResultSet rs = stmt.executeQuery();
+
+            // Si hay un resultado, crear un nuevo Usuario y retornarlo
+            if (rs.next()) {
+                return new Usuario(
+                    rs.getString("elementoConNombre_nombre"),
+                    rs.getString("nombreUsuario"),
+                    rs.getString("contraseña"),
+                    rs.getBoolean("isEditor"),
+                    rs.getBoolean("isAdmin")
+                );
+            }
+
+        } catch (SQLException | ConexionFallidaException e) {
+            System.out.println("Error al obtener el usuario: " + e.getMessage());
         }
-        
-        String query = "INSERT INTO Usuario (nombreUsuario, contraseña, isAdmin, isEditor) VALUES (?, ?, ?, ?)";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setString(1, nombreUsuario);
-        statement.setString(2, contraseña);
-        statement.setBoolean(3, false); // isAdmin siempre se establece en false al registrarse
-        statement.setBoolean(4, false); // isEditor siempre se establece en false al registrarse
-        int rowsInserted = statement.executeUpdate();
-        if (rowsInserted > 0) {
-            System.out.println("Usuario registrado exitosamente!");
-        }
-        connection.close();
+
+        // Si no se encontró ningún usuario, retornar null
+        return null;
     }
 
+    public static int getIdPorNombreUsuario(String nombreUsuario) {
+        String sql = "SELECT id FROM usuario WHERE nombreUsuario = ?";
+        int id = -1;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Establecer el parámetro del nombre de usuario en la consulta SQL
+            stmt.setString(1, nombreUsuario);
+
+            // Ejecutar la consulta SQL y obtener los resultados
+            ResultSet rs = stmt.executeQuery();
+
+            // Si hay un resultado, obtener el id del usuario
+            if (rs.next()) {
+                id = rs.getInt("id");
+            }
+
+        } catch (SQLException | ConexionFallidaException e) {
+            System.out.println("Error al obtener el ID del usuario: " + e.getMessage());
+        }
+
+        // Si no se encontró ningún usuario, retornar -1
+        return id;
+    }
 }
+
