@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
 
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
@@ -191,13 +192,13 @@ public class Noticia extends ElementoConNombre {
                 String nombre = rs.getString("elementoConNombre_nombre");
                 String contenido = rs.getString("contenido");
                 LocalDateTime fechaPublicacion = rs.getTimestamp("fechaPublicacion").toLocalDateTime();
-                // Aquí asumimos que hay un método estático Usuario.getUsuarioPorId() que retorna un Usuario dado su ID.
                 Usuario autor = Usuario.getUsuarioPorId(rs.getInt("autor_id"));
                 Categoria categoria = Categoria.valueOf(rs.getString("categoria"));
                 boolean noticiaPremium = rs.getBoolean("noticiaPremium");
 
                 // Crear una nueva noticia con los datos obtenidos y añadirla a la lista
-                noticias.add(new Noticia(nombre, contenido, fechaPublicacion, autor, categoria, noticiaPremium));
+                Noticia noticia = new Noticia(nombre, contenido, fechaPublicacion, autor, categoria, noticiaPremium);
+                noticias.add(noticia);
             }
 
         } catch (SQLException e) {
@@ -207,6 +208,17 @@ public class Noticia extends ElementoConNombre {
         return noticias;
     }
 
+    public static void visualizarNoticia(List<Noticia> noticias) {
+        for (Noticia noticia : noticias) {
+            System.out.println("Título: " + noticia.getNombre());
+            System.out.println("Contenido: " + noticia.getContenido());
+            System.out.println("Fecha de publicación: " + noticia.getFechaPublicacion());
+            System.out.println("Autor: " + noticia.getAutor().getNombre());
+            System.out.println("Categoría: " + noticia.getCategoria());
+            System.out.println("Noticia Premium: " + noticia.isNoticiaPremium());
+            System.out.println("------------------------");
+        }
+    }
     public void actualizar_noticia(String nuevoNombre) throws ConexionFallidaException {
         // Buscar la noticia en la lista de noticias creadas por el autor
         Optional<Noticia> noticiaOptional = autor.getNoticiasCreadas().stream()
@@ -305,4 +317,5 @@ public class Noticia extends ElementoConNombre {
             throw new ConexionFallidaException("Error al eliminar la noticia: " + e.getMessage());
         }
     }
+
 }
