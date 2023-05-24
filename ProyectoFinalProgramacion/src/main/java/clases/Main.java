@@ -164,91 +164,96 @@ public class Main {
                         }
                     });
 
-                 // Agregar un botón para editar noticias solo para usuarios con isEditor activo
-                    JButton editNewsButton = new JButton("Editar Noticia");
-                    editNewsButton.setBounds(1000, 150, 150, 30);
-                    userWindow.add(editNewsButton);
+	                 // Agregar un botón para editar noticias solo para usuarios con isEditor activo
+	                    JButton editNewsButton = new JButton("Editar Noticia");
+	                    editNewsButton.setBounds(1000, 150, 150, 30);
+	                    userWindow.add(editNewsButton);
+	
+	                    editNewsButton.addActionListener(new ActionListener() {
+	                        @Override
+	                        public void actionPerformed(ActionEvent e) {
+	                            // Obtener la lista de noticias del usuario actual
+	                            List<Noticia> noticias = null;
+	                            try {
+	                                noticias = usuario.getNoticiasCreadas();
+	                            } catch (Exception ex) {
+	                                JOptionPane.showMessageDialog(userWindow, "Error al mostrar noticias: " + ex.getMessage());
+	                                return;
+	                            }
 
-                    editNewsButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            // Obtener la lista de noticias del usuario actual
-                            List<Noticia> noticias = null;
-                            try {
-                                noticias = usuario.getNoticiasCreadas();
-                            } catch (Exception ex) {
-                                JOptionPane.showMessageDialog(userWindow, "Error al mostrar noticias: " + ex.getMessage());
-                                return;
-                            }
+	                            // Si no hay noticias, informar al usuario y terminar la acción
+	                            if (noticias.isEmpty()) {
+	                                JOptionPane.showMessageDialog(userWindow, "No hay noticias para editar");
+	                                return;
+	                            }
 
-                            // Si no hay noticias, informar al usuario y terminar la acción
-                            if (noticias.isEmpty()) {
-                                JOptionPane.showMessageDialog(userWindow, "No hay noticias para editar");
-                                return;
-                            }
+	                            // Crear un diálogo para seleccionar la noticia a editar
+	                            Object selectedNews = JOptionPane.showInputDialog(
+	                                    userWindow,
+	                                    "Selecciona la noticia a editar:",
+	                                    "Editar Noticia",
+	                                    JOptionPane.QUESTION_MESSAGE,
+	                                    null,
+	                                    noticias.toArray(),
+	                                    noticias.get(0));
 
-                            // Crear un diálogo para seleccionar la noticia a editar
-                            Object selectedNews = JOptionPane.showInputDialog(
-                                    userWindow,
-                                    "Selecciona la noticia a editar:",
-                                    "Editar Noticia",
-                                    JOptionPane.QUESTION_MESSAGE,
-                                    null,
-                                    noticias.toArray(),
-                                    noticias.get(0));
+	                            // Verificar si se seleccionó una noticia
+	                            if (selectedNews == null) {
+	                                JOptionPane.showMessageDialog(userWindow, "No se seleccionó ninguna noticia para editar");
+	                                return;
+	                            }
 
-                            // Verificar si se seleccionó una noticia
-                            if (selectedNews instanceof Noticia) {
-                                Noticia noticiaSeleccionada = (Noticia) selectedNews;
+	                            if (selectedNews instanceof Noticia) {
+	                                Noticia noticiaSeleccionada = (Noticia) selectedNews;
 
-                                // Abrir una nueva ventana para editar la noticia seleccionada
-                                JFrame editNewsFrame = new JFrame("Editar Noticia");
-                                editNewsFrame.setSize(500, 500);
-                                editNewsFrame.setLayout(new FlowLayout());
+	                                // Abrir una nueva ventana para editar la noticia seleccionada
+	                                JFrame editNewsFrame = new JFrame("Editar Noticia");
+	                                editNewsFrame.setSize(500, 500);
+	                                editNewsFrame.setLayout(new FlowLayout());
 
-                                // Campos de texto para los detalles de la noticia
-                                JTextField titleField = new JTextField(noticiaSeleccionada.getNombre(), 20);
-                                JTextArea contentArea = new JTextArea(noticiaSeleccionada.getContenido(), 5, 20);
-                                JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
-                                categoryBox.setSelectedItem(noticiaSeleccionada.getCategoria());
-                                JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium", noticiaSeleccionada.isNoticiaPremium());
+	                                // Campos de texto para los detalles de la noticia
+	                                JTextField titleField = new JTextField(noticiaSeleccionada.getNombre(), 20);
+	                                JTextArea contentArea = new JTextArea(noticiaSeleccionada.getContenido(), 5, 20);
+	                                JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
+	                                categoryBox.setSelectedItem(noticiaSeleccionada.getCategoria());
+	                                JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium", noticiaSeleccionada.isNoticiaPremium());
 
-                                // Añadir los campos a la ventana
-                                editNewsFrame.add(new JLabel("Título:"));
-                                editNewsFrame.add(titleField);
-                                editNewsFrame.add(new JLabel("Contenido:"));
-                                editNewsFrame.add(contentArea);
-                                editNewsFrame.add(new JLabel("Categoría:"));
-                                editNewsFrame.add(categoryBox);
-                                editNewsFrame.add(premiumCheckBox);
+	                                // Añadir los campos a la ventana
+	                                editNewsFrame.add(new JLabel("Título:"));
+	                                editNewsFrame.add(titleField);
+	                                editNewsFrame.add(new JLabel("Contenido:"));
+	                                editNewsFrame.add(contentArea);
+	                                editNewsFrame.add(new JLabel("Categoría:"));
+	                                editNewsFrame.add(categoryBox);
+	                                editNewsFrame.add(premiumCheckBox);
 
-                                // Botón para confirmar la edición de la noticia
-                                JButton confirmButton = new JButton("Actualizar Noticia");
-                                confirmButton.addActionListener(new ActionListener() {
-                                    @Override
-                                    public void actionPerformed(ActionEvent e) {
-                                        // Actualizar los valores de la noticia seleccionada
-                                        noticiaSeleccionada.setNombre(titleField.getText());
-                                        noticiaSeleccionada.setContenido(contentArea.getText());
-                                        noticiaSeleccionada.setCategoria((Categoria) categoryBox.getSelectedItem());
-                                        noticiaSeleccionada.setNoticiaPremium(premiumCheckBox.isSelected());
+	                                // Botón para confirmar la edición de la noticia
+	                                JButton confirmButton = new JButton("Actualizar Noticia");
+	                                confirmButton.addActionListener(new ActionListener() {
+	                                    @Override
+	                                    public void actionPerformed(ActionEvent e) {
+	                                        // Actualizar los valores de la noticia seleccionada
+	                                        String nuevoNombre = titleField.getText();
+	                                        String nuevoContenido = contentArea.getText();
+	                                        Categoria nuevaCategoria = (Categoria) categoryBox.getSelectedItem();
+	                                        boolean nuevaNoticiaPremium = premiumCheckBox.isSelected();
 
-                                        // Llamar al método actualizar_noticia() con la noticia actualizada
-                                        try {
-                                            noticiaSeleccionada.actualizar_noticia(titleField.getText());
-                                            JOptionPane.showMessageDialog(editNewsFrame, "Noticia actualizada exitosamente");
-                                            editNewsFrame.dispose(); // Cerrar la ventana de edición de noticia
-                                        } catch (Exception ex) {
-                                            JOptionPane.showMessageDialog(editNewsFrame, "Error al actualizar noticia: " + ex.getMessage());
-                                        }
-                                    }
-                                });
+	                                        // Llamar al método actualizar_noticia_completa() con los valores actualizados
+	                                        try {
+	                                            noticiaSeleccionada.actualizar_noticia_completa(nuevoNombre, nuevoContenido, nuevaCategoria, nuevaNoticiaPremium);
+	                                            JOptionPane.showMessageDialog(editNewsFrame, "Noticia actualizada exitosamente");
+	                                            editNewsFrame.dispose(); // Cerrar la ventana de edición de noticia
+	                                        } catch (Exception ex) {
+	                                            JOptionPane.showMessageDialog(editNewsFrame, "Error al actualizar noticia: " + ex.getMessage());
+	                                        }
+	                                    }
+	                                });
 
-                                editNewsFrame.add(confirmButton);
-                                editNewsFrame.setVisible(true);
-                            }
-                        }
-                    });
+	                                editNewsFrame.add(confirmButton);
+	                                editNewsFrame.setVisible(true);
+	                            }
+	                        }
+	                    });
 
                     // Agregar un botón para eliminar noticias solo para usuarios con isEditor activo
                     JButton deleteNewsButton = new JButton("Eliminar Noticia");
