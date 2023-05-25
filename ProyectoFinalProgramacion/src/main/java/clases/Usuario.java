@@ -232,5 +232,46 @@ public class Usuario extends ElementoConNombre {
         // Si no se encontró ningún usuario, retornar null
         return null;
     }
+    public static boolean esAdmin(String nombreUsuario) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
+        try {
+            // Obtener la conexión a la base de datos
+            conn = DatabaseConnector.getConnection();
+
+            // Consultar la base de datos para verificar si el usuario es administrador
+            String query = "SELECT isAdmin FROM usuario WHERE nombreUsuario = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, nombreUsuario);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int isAdmin = rs.getInt("isAdmin");
+                return isAdmin == 1; // Si isAdmin es igual a 1, el usuario es administrador
+            }
+        } catch (SQLException | ConexionFallidaException e) {
+            e.printStackTrace();
+        } finally {
+            // Cerrar recursos
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false; // Si no se encontró al usuario o ocurrió un error, asumimos que no es administrador
+    }
 }
+
+

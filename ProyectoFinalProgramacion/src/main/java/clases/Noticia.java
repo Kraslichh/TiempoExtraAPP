@@ -1,15 +1,33 @@
 package clases;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Timer;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JViewport;
 
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
@@ -22,6 +40,7 @@ public class Noticia extends ElementoConNombre {
     private Usuario autor;
     private Categoria categoria;
     private boolean noticiaPremium;
+    private static JPanel userPanel; // Campo estático para almacenar el userPanel
 
     // Constructor
     public Noticia(String nombre, String contenido, LocalDateTime fechaPublicacion, Usuario autor, Categoria categoria, boolean noticiaPremium) {
@@ -73,6 +92,11 @@ public class Noticia extends ElementoConNombre {
     public void setNoticiaPremium(boolean noticiaPremium) {
         this.noticiaPremium = noticiaPremium;
     }
+    
+
+    public static void setUserPanel(JPanel panel) {
+        userPanel = panel;
+    }
 
     // Los métodos crear_noticia(), mostrar_noticias(), actualizar_noticia() y eliminar_noticia() deben implementarse según la lógica de tu aplicación.
 
@@ -106,18 +130,15 @@ public class Noticia extends ElementoConNombre {
         }
     }
 
-    public static List<Noticia> getNoticiasCreadas(int autorId) throws ConexionFallidaException {
+    public static List<Noticia> getTodasLasNoticias() throws ConexionFallidaException {
         // Lista para almacenar las noticias recuperadas
         List<Noticia> noticias = new ArrayList<>();
 
-        // Consulta SQL para seleccionar noticias del autor
-        String sql = "SELECT * FROM noticia WHERE autor_id = ?";
+        // Consulta SQL para seleccionar todas las noticias
+        String sql = "SELECT * FROM noticia";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Establecer el valor del autor_id
-            stmt.setInt(1, autorId);
 
             // Ejecutar la consulta SQL
             ResultSet rs = stmt.executeQuery();
@@ -133,19 +154,23 @@ public class Noticia extends ElementoConNombre {
                     Categoria.valueOf(rs.getString("categoria")), // categoria
                     rs.getBoolean("noticiaPremium") // noticiaPremium
                 );
-                
+
                 // Añadir la noticia a la lista
                 noticias.add(noticia);
                 System.out.println("Noticia añadida: " + noticia.getNombre()); // Imprimir el nombre de la noticia añadida
             }
 
         } catch (SQLException e) {
-            throw new ConexionFallidaException("Error al obtener noticias creadas: " + e.getMessage());
+            System.out.println("SQLException: " + e.getMessage());
+            System.out.println("SQLState: " + e.getSQLState());
+            System.out.println("VendorError: " + e.getErrorCode());
+            throw new ConexionFallidaException("Error al obtener todas las noticias: " + e.getMessage());
         }
 
-        System.out.println("Se encontraron " + noticias.size() + " noticias para el autor con ID " + autorId); // Imprimir el número de noticias encontradas
+        System.out.println("Se encontraron " + noticias.size() + " noticias"); // Imprimir el número de noticias encontradas
         return noticias;
     }
+    
     public void actualizar_noticia_completa(String nuevoNombre, String nuevoContenido, Categoria nuevaCategoria, boolean nuevaNoticiaPremium) throws ConexionFallidaException {
         // Consulta SQL para actualizar la noticia
         String sql = "UPDATE noticia SET elementoConNombre_nombre = ?, contenido = ?, categoria = ?, noticiaPremium = ? WHERE id = ?";
@@ -219,21 +244,7 @@ public class Noticia extends ElementoConNombre {
             System.out.println("------------------------");
         }
     }
-    public void actualizar_noticia(String nuevoNombre) throws ConexionFallidaException {
-        // Buscar la noticia en la lista de noticias creadas por el autor
-        Optional<Noticia> noticiaOptional = autor.getNoticiasCreadas().stream()
-                .filter(noticia -> noticia.getNombre().equals(this.getNombre()))
-                .findFirst();
 
-        if (noticiaOptional.isPresent()) {
-            Noticia noticiaEncontrada = noticiaOptional.get();
-            // Actualizar el nombre de la noticia
-            noticiaEncontrada.setNombre(nuevoNombre);
-            System.out.println("Noticia actualizada exitosamente.");
-        } else {
-            System.out.println("No se pudo encontrar la noticia.");
-        }
-    }
     public int getIdFromDatabase() throws ConexionFallidaException {
         // Consulta SQL para obtener el ID de la noticia desde la base de datos
         String sql = "SELECT id FROM noticia WHERE elementoConNombre_nombre = ?";
@@ -257,8 +268,32 @@ public class Noticia extends ElementoConNombre {
             throw new ConexionFallidaException("Error al obtener el ID de la noticia: " + e.getMessage());
         }
     }
+    public static List<Noticia> actualizarNoticias() throws ConexionFallidaException {
+        List<Noticia> noticiasActualizadas = new ArrayList<>();
 
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM noticia");
+             ResultSet rs = stmt.executeQuery()) {
 
+            while (rs.next()) {
+                String nombre = rs.getString("elementoConNombre_nombre");
+                String contenido = rs.getString("contenido");
+                LocalDateTime fechaPublicacion = rs.getTimestamp("fechaPublicacion").toLocalDateTime();
+                Usuario autor = Usuario.getUsuarioPorId(rs.getInt("autor_id"));
+                Categoria categoria = Categoria.valueOf(rs.getString("categoria"));
+                boolean noticiaPremium = rs.getBoolean("noticiaPremium");
+
+                Noticia noticia = new Noticia(nombre, contenido, fechaPublicacion, autor, categoria, noticiaPremium);
+                noticiasActualizadas.add(noticia);
+            }
+
+            System.out.println("Se han actualizado las noticias");
+        } catch (SQLException e) {
+            throw new ConexionFallidaException("Error al actualizar las noticias: " + e.getMessage());
+        }
+
+        return noticiasActualizadas;
+    }
     public static List<Noticia> getNoticiasCreadas(Usuario usuario) throws ConexionFallidaException {
         List<Noticia> noticias = new ArrayList<>();
 
@@ -317,5 +352,6 @@ public class Noticia extends ElementoConNombre {
             throw new ConexionFallidaException("Error al eliminar la noticia: " + e.getMessage());
         }
     }
+
 
 }
