@@ -13,7 +13,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -353,10 +358,15 @@ public class Main {
                     	manageUsersButton.setBounds(1000, 300, 150, 30);
                     	userWindow.add(manageUsersButton);
 
+                    	// Crear una etiqueta con el texto deseado
+                    	JLabel seleccionarUsuarioLabel = new JLabel("Selecciona el usuario a eliminar");
+                    	seleccionarUsuarioLabel.setBounds(1000, 325, 200, 30); // Asegúrate de ajustar las coordenadas y tamaño según tu necesidad
+                    	userWindow.add(seleccionarUsuarioLabel);
+
                     	// Crear un JComboBox para mostrar todos los usuarios
                     	List<String> listaUsuarios = Usuario.obtenerTodosLosUsuarios();
                     	JComboBox<String> listaUsuariosComboBox = new JComboBox<>(listaUsuarios.toArray(new String[0]));
-                    	listaUsuariosComboBox.setBounds(1000, 340, 150, 30);
+                    	listaUsuariosComboBox.setBounds(1000, 350, 150, 30);
                     	userWindow.add(listaUsuariosComboBox);
 
                     	manageUsersButton.addActionListener(new ActionListener() {
@@ -374,29 +384,120 @@ public class Main {
                     	    }
                     	});
 
-                        // Agregar un botón para revisar registros
-                        JButton reviewLogsButton = new JButton("Revisar Registros");
-                        reviewLogsButton.setBounds(1000, 400, 150, 30);
-                        userWindow.add(reviewLogsButton);
+                    	JButton reviewLogsButton = new JButton("Revisar Registros");
+                    	reviewLogsButton.setBounds(1000, 400, 150, 30);
+                    	userWindow.add(reviewLogsButton);
 
-                        reviewLogsButton.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                // Acciones para revisar registros
-                            }
-                        });
+                    	reviewLogsButton.addActionListener(new ActionListener() {
+                    	    @Override
+                    	    public void actionPerformed(ActionEvent e) {
+                    	        // Crear una nueva ventana para los registros
+                    	        JFrame logsFrame = new JFrame("Registros");
+                    	        logsFrame.setSize(500, 500);
+                    	        
+                    	        // Crear un JTextArea para mostrar los registros
+                    	        JTextArea logsArea = new JTextArea();
+                    	        logsArea.setEditable(false); // Para que el usuario no pueda modificar los registros
 
-                        // Agregar un botón para administrar contenido
-                        JButton manageContentButton = new JButton("Modificar Usuario");
-                        manageContentButton.setBounds(1000, 450, 150, 30);
-                        userWindow.add(manageContentButton);
+                    	        // Obtener los registros y mostrarlos en el JTextArea
+                    	        try {
+                    	            List<String> registros = Usuario.verRegistros();
+                    	            for (String registro : registros) {
+                    	                logsArea.append(registro + "\n");
+                    	            }
+                    	        } catch (IOException ex) {
+                    	            logsArea.append("Error al leer los registros: " + ex.getMessage());
+                    	        }
 
-                        manageContentButton.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                // Acciones para administrar contenido
-                            }
-                        });
+                    	        // Agregar un JScrollPane para permitir el desplazamiento si hay muchos registros
+                    	        JScrollPane scrollPane = new JScrollPane(logsArea);
+                    	        logsFrame.add(scrollPane);
+
+                    	        // Mostrar la ventana de registros
+                    	        logsFrame.setVisible(true);
+                    	    }
+                    	});
+
+                    	// Agregar un botón para administrar contenido
+                    	JButton manageContentButton = new JButton("Modificar Usuario");
+                    	manageContentButton.setBounds(1000, 450, 150, 30);
+                    	userWindow.add(manageContentButton);
+
+                    	manageContentButton.addActionListener(new ActionListener() {
+                    	    @Override
+                    	    public void actionPerformed(ActionEvent e) {
+                    	        // Acciones para administrar contenido
+                    	        JFrame modificarUsuarioWindow = new JFrame("Modificar Usuario");
+                    	        modificarUsuarioWindow.setSize(400, 400); // Ajusta el tamaño de la ventana según necesites
+                    	        modificarUsuarioWindow.setLayout(null);
+                    	        modificarUsuarioWindow.setVisible(true);
+
+                    	        JLabel seleccionarUsuarioLabel = new JLabel("Selecciona el usuario a modificar");
+                    	        seleccionarUsuarioLabel.setBounds(100, 30, 200, 30);
+                    	        modificarUsuarioWindow.add(seleccionarUsuarioLabel);
+
+                    	        List<String> listaUsuarios = new ArrayList<>();
+                    	        JComboBox<String> listaUsuariosComboBox;
+                    	        try {
+                    	            listaUsuarios = Usuario.obtenerTodosLosUsuarios();
+                    	            listaUsuariosComboBox = new JComboBox<>(listaUsuarios.toArray(new String[0]));
+                    	        } catch (Exception ex) {
+                    	            JOptionPane.showMessageDialog(null, "Error al obtener la lista de usuarios: " + ex.getMessage());
+                    	            return;
+                    	        }
+                    	        listaUsuariosComboBox.setBounds(100, 60, 200, 30);
+                    	        modificarUsuarioWindow.add(listaUsuariosComboBox);
+
+                    	        // Aquí agregar los demás campos necesarios para recoger la información del usuario (nombre, nombreUsuario, contraseña, isEditor, isAdmin)
+                    	        // ...
+
+                    	        JButton modificarUsuarioButton = new JButton("Confirmar modificación");
+                    	        modificarUsuarioButton.setBounds(100, 320, 200, 30);
+                    	        modificarUsuarioWindow.add(modificarUsuarioButton);
+
+                    	        modificarUsuarioButton.addActionListener(new ActionListener() {
+                    	            @Override
+                    	            public void actionPerformed(ActionEvent e) {
+                    	            	String nombreUsuario = (String) listaUsuariosComboBox.getSelectedItem();
+                    	            	// Aquí recoger los demás campos necesarios para modificar el usuario (nombreUsuario, nuevoNombreUsuario, contraseña, isEditor, isAdmin)
+                    	            	String nuevoNombreUsuario = "Nuevo nombre de usuario";  // Ejemplo: Recoger el nuevo nombre de usuario desde algún campo de entrada
+                    	            	String nuevaContraseña = "Nueva contraseña";  // Ejemplo: Recoger la nueva contraseña del usuario desde algún campo de entrada
+                    	            	boolean esEditor = true;  // Ejemplo: Recoger el estado "isEditor" desde algún campo de entrada, aquí se asume que se seleccionó como verdadero (true)
+                    	            	boolean esAdmin = false;  // Ejemplo: Recoger el estado "isAdmin" desde algún campo de entrada, aquí se asume que se seleccionó como falso (false)
+
+                    	            	// Luego de recoger los valores necesarios, puedes utilizarlos en tu consulta SQL para modificar el usuario en la tabla "usuario"
+
+                    	            	// Código para establecer la conexión con la base de datos y ejecutar la consulta SQL correspondiente
+                    	            	try {
+                    	            	    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/tiempoextrabd", "root", "");
+                    	            	    Statement statement = connection.createStatement();
+                    	            	    
+                    	            	    String sql = "UPDATE usuario SET nombreUsuario = '" + nuevoNombreUsuario + "', contraseña = '" + nuevaContraseña + "', isEditor = " + (esEditor ? 1 : 0) + ", isAdmin = " + (esAdmin ? 1 : 0) + " WHERE nombreUsuario = '" + nombreUsuario + "'";                    	            	    
+                    	            	    statement.executeUpdate(sql);
+                    	            	    
+                    	            	    // Cerrar la conexión y realizar cualquier otra tarea necesaria
+                    	            	    statement.close();
+                    	            	    connection.close();
+                    	            	    
+                    	            	    // Realizar alguna acción adicional después de modificar el usuario
+                    	            	    // ...
+                    	            	    
+                    	            	    System.out.println("El usuario ha sido modificado exitosamente.");
+                    	            	} catch (SQLException modificacione) {
+                    	            		modificacione.printStackTrace();
+                    	            	    // Manejar cualquier error relacionado con la conexión o la consulta SQL
+                    	            	}
+
+                    	                try {
+                    	                    Usuario.modificarUsuario(nombreUsuario, password, username, false, false/*idUsuario, nombre, nombreUsuario, contraseña, isEditor, isAdmin*/);
+                    	                    JOptionPane.showMessageDialog(null, "Usuario modificado exitosamente!");
+                    	                } catch (ConexionFallidaException ex) {
+                    	                    JOptionPane.showMessageDialog(null, "Error al modificar el usuario: " + ex.getMessage());
+                    	                }
+                    	            }
+                    	        });
+                    	    }
+                    	});
                     }
                     
 

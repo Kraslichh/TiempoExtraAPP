@@ -1,33 +1,14 @@
 package clases;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Timer;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JViewport;
 
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
@@ -40,7 +21,6 @@ public class Noticia extends ElementoConNombre {
     private Usuario autor;
     private Categoria categoria;
     private boolean noticiaPremium;
-    private static JPanel userPanel; // Campo estático para almacenar el userPanel
 
     // Constructor
     public Noticia(String nombre, String contenido, LocalDateTime fechaPublicacion, Usuario autor, Categoria categoria, boolean noticiaPremium) {
@@ -94,10 +74,6 @@ public class Noticia extends ElementoConNombre {
     }
     
 
-    public static void setUserPanel(JPanel panel) {
-        userPanel = panel;
-    }
-
     // Los métodos crear_noticia(), mostrar_noticias(), actualizar_noticia() y eliminar_noticia() deben implementarse según la lógica de tu aplicación.
 
     public static void crear_noticia(String nombre, String contenido, LocalDateTime fechaPublicacion, Usuario autor, Categoria categoria, boolean noticiaPremium) throws ConexionFallidaException {
@@ -121,6 +97,7 @@ public class Noticia extends ElementoConNombre {
             // Verificar si la inserción fue exitosa
             if (rowsAffected == 1) {
                 System.out.println("Noticia creada exitosamente.");
+                Usuario.escribirLog("El usuario " + autor.getNombreUsuario() + " ha creado una noticia el " + LocalDateTime.now());
             } else {
                 System.out.println("No se pudo crear la noticia.");
             }

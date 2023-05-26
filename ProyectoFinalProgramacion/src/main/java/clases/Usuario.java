@@ -1,8 +1,10 @@
 package clases;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -272,6 +274,18 @@ public class Usuario extends ElementoConNombre {
 
         return false; // Si no se encontró al usuario o ocurrió un error, asumimos que no es administrador
     }
+    public static void escribirLog(String log) {
+        String nombreArchivo = "logs.log"; // Nombre de tu archivo de log
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(nombreArchivo, true))) {
+            writer.write(log);
+            writer.newLine(); // Para agregar una nueva línea después de cada log
+        } catch (IOException e) {
+            System.out.println("Error al escribir el log: " + e.getMessage());
+        }
+    }
+    
+    
 
  // Método para eliminar un usuario
     public static void eliminarUsuario(String nombreUsuario) throws ConexionFallidaException {
@@ -298,14 +312,25 @@ public class Usuario extends ElementoConNombre {
         }
     }
 
- // Método para ver los registros
- public static void verRegistros() {
-     // Aquí necesitarías una tabla o archivo donde se almacenen los registros (logs).
-     // Simplemente tendrías que leer esa información y mostrarla.
- }
+    public static List<String> verRegistros() throws IOException {
+        // Nombre del archivo de registro
+        String nombreArchivo = "logs.log";
 
+        List<String> registros = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(nombreArchivo))) {
+            String linea;
+
+            while ((linea = reader.readLine()) != null) {
+                registros.add(linea);
+            }
+        } catch (IOException e) {
+            throw new IOException("Error al leer los registros: " + e.getMessage());
+        }
+
+        return registros;
+    }
  // Método para modificar un usuario
- public static void modificarUsuario(int idUsuario, String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) throws ConexionFallidaException {
+ public static void modificarUsuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) throws ConexionFallidaException {
      // Consulta SQL para modificar un usuario
      String sql = "UPDATE usuario SET elementoConNombre_nombre = ?, nombreUsuario = ?, contraseña = ?, isEditor = ?, isAdmin = ? WHERE id = ?";
 
@@ -318,7 +343,6 @@ public class Usuario extends ElementoConNombre {
          stmt.setString(3, contraseña);
          stmt.setBoolean(4, isEditor);
          stmt.setBoolean(5, isAdmin);
-         stmt.setInt(6, idUsuario);
 
          // Ejecutar la consulta SQL
          int filasModificadas = stmt.executeUpdate();

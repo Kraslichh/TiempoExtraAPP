@@ -3,7 +3,9 @@ package excepciones;
 //nosotros hayamos colocado como es en este caso en la clase DatabaseConnector ahi hemos creado un mensaje
 //que usara esta funcion.
 public class ConexionFallidaException extends Exception {
-    public ConexionFallidaException(String mensaje) {
+	private static final long serialVersionUID = 1L;
+
+	public ConexionFallidaException(String mensaje) {
         super(mensaje);
     }
 }
