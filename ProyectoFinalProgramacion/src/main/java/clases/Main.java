@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -128,7 +127,7 @@ public class Main {
 
                     // Agregar un botón para cerrar la sesión
                     JButton logoutButton = new JButton("Cerrar Sesión");
-                    logoutButton.setBounds(1000, 50, 150, 30);
+                    logoutButton.setBounds(1000, 200, 150, 30);
                     userWindow.add(logoutButton);
 
                     logoutButton.addActionListener(new ActionListener() {
@@ -151,7 +150,7 @@ public class Main {
                     // Agregar un botón para crear noticias solo para usuarios con isEditor activo
                     if (usuario.isEditor()) {
                         JButton createNewsButton = new JButton("Crear Noticia");
-                        createNewsButton.setBounds(1000, 100, 150, 30);
+                        createNewsButton.setBounds(1000, 300, 150, 30);
                         userWindow.add(createNewsButton);
 
                         createNewsButton.addActionListener(new ActionListener() {
@@ -207,7 +206,7 @@ public class Main {
 
                         // Agregar un botón para editar noticias solo para usuarios con isEditor activo
                         JButton editNewsButton = new JButton("Editar Noticia");
-                        editNewsButton.setBounds(1000, 150, 150, 30);
+                        editNewsButton.setBounds(1000, 350, 150, 30);
                         userWindow.add(editNewsButton);
 
                         editNewsButton.addActionListener(new ActionListener() {
@@ -298,7 +297,7 @@ public class Main {
 
                         // Agregar un botón para eliminar noticias solo para usuarios con isEditor activo
                         JButton deleteNewsButton = new JButton("Eliminar Noticia");
-                        deleteNewsButton.setBounds(1000, 200, 150, 30);
+                        deleteNewsButton.setBounds(1000, 400, 150, 30);
                         userWindow.add(deleteNewsButton);
 
                         deleteNewsButton.addActionListener(new ActionListener() {
@@ -347,6 +346,59 @@ public class Main {
                             }
                         });
                     }
+                 // Después de iniciar sesión
+                    if(usuario.isAdmin()) {
+                    	// Agregar un botón para administrar usuarios
+                    	JButton manageUsersButton = new JButton("Eliminar Usuario");
+                    	manageUsersButton.setBounds(1000, 300, 150, 30);
+                    	userWindow.add(manageUsersButton);
+
+                    	// Crear un JComboBox para mostrar todos los usuarios
+                    	List<String> listaUsuarios = Usuario.obtenerTodosLosUsuarios();
+                    	JComboBox<String> listaUsuariosComboBox = new JComboBox<>(listaUsuarios.toArray(new String[0]));
+                    	listaUsuariosComboBox.setBounds(1000, 340, 150, 30);
+                    	userWindow.add(listaUsuariosComboBox);
+
+                    	manageUsersButton.addActionListener(new ActionListener() {
+                    	    @Override
+                    	    public void actionPerformed(ActionEvent e) {
+                    	        // Acciones para administrar usuarios
+                    	        String nombreUsuario = (String) listaUsuariosComboBox.getSelectedItem(); // Obtener el usuario seleccionado
+                    	        try {
+                    	            Usuario.eliminarUsuario(nombreUsuario); // Llamar al método eliminarUsuario
+                    	            listaUsuariosComboBox.removeItem(nombreUsuario); // Eliminar el usuario del JComboBox
+                    	            JOptionPane.showMessageDialog(null, "Usuario eliminado exitosamente!");
+                    	        } catch (ConexionFallidaException ex) {
+                    	            JOptionPane.showMessageDialog(null, "Error al eliminar el usuario: " + ex.getMessage());
+                    	        }
+                    	    }
+                    	});
+
+                        // Agregar un botón para revisar registros
+                        JButton reviewLogsButton = new JButton("Revisar Registros");
+                        reviewLogsButton.setBounds(1000, 400, 150, 30);
+                        userWindow.add(reviewLogsButton);
+
+                        reviewLogsButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Acciones para revisar registros
+                            }
+                        });
+
+                        // Agregar un botón para administrar contenido
+                        JButton manageContentButton = new JButton("Modificar Usuario");
+                        manageContentButton.setBounds(1000, 450, 150, 30);
+                        userWindow.add(manageContentButton);
+
+                        manageContentButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Acciones para administrar contenido
+                            }
+                        });
+                    }
+                    
 
                     // Agregar un panel para mostrar las noticias
                     JPanel newsPanel = new JPanel();
@@ -468,7 +520,7 @@ public class Main {
                         Image image = ImageIO.read(imageUrl);
 
                         // Escala la imagen
-                        Image newImg = image.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        Image newImg = image.getScaledInstance(50, 50, Image.SCALE_SMOOTH);
 
                         // Crea un ImageIcon con la imagen escalada
                         ImageIcon imageIcon = new ImageIcon(newImg);
@@ -527,7 +579,7 @@ public class Main {
                         public void mouseClicked(MouseEvent e) {
                             // Abrir una nueva ventana para mostrar los detalles de la noticia
                             JFrame noticiaFrame = new JFrame(noticia.getNombre());
-                            noticiaFrame.setSize(400, 400);
+                            noticiaFrame.setSize(600, 600);
 
                             // Panel para los detalles de la noticia
                             JPanel detallesPanel = new JPanel();

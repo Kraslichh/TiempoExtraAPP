@@ -272,6 +272,93 @@ public class Usuario extends ElementoConNombre {
 
         return false; // Si no se encontró al usuario o ocurrió un error, asumimos que no es administrador
     }
+
+ // Método para eliminar un usuario
+    public static void eliminarUsuario(String nombreUsuario) throws ConexionFallidaException {
+        // Consulta SQL para eliminar un usuario
+        String sql = "DELETE FROM usuario WHERE nombreUsuario = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Establecer el parámetro del nombre de usuario en la consulta SQL
+            stmt.setString(1, nombreUsuario);
+
+            // Ejecutar la consulta SQL
+            int filasEliminadas = stmt.executeUpdate();
+
+            if (filasEliminadas > 0) {
+                System.out.println("Usuario eliminado con éxito.");
+            } else {
+                System.out.println("No se pudo eliminar el usuario. Compruebe si el nombre de usuario es correcto.");
+            }
+
+        } catch (SQLException e) {
+            throw new ConexionFallidaException("Error al eliminar el usuario: " + e.getMessage());
+        }
+    }
+
+ // Método para ver los registros
+ public static void verRegistros() {
+     // Aquí necesitarías una tabla o archivo donde se almacenen los registros (logs).
+     // Simplemente tendrías que leer esa información y mostrarla.
+ }
+
+ // Método para modificar un usuario
+ public static void modificarUsuario(int idUsuario, String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) throws ConexionFallidaException {
+     // Consulta SQL para modificar un usuario
+     String sql = "UPDATE usuario SET elementoConNombre_nombre = ?, nombreUsuario = ?, contraseña = ?, isEditor = ?, isAdmin = ? WHERE id = ?";
+
+     try (Connection conn = DatabaseConnector.getConnection();
+          PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+         // Establecer los parámetros en la consulta SQL
+         stmt.setString(1, nombre);
+         stmt.setString(2, nombreUsuario);
+         stmt.setString(3, contraseña);
+         stmt.setBoolean(4, isEditor);
+         stmt.setBoolean(5, isAdmin);
+         stmt.setInt(6, idUsuario);
+
+         // Ejecutar la consulta SQL
+         int filasModificadas = stmt.executeUpdate();
+
+         if (filasModificadas > 0) {
+             System.out.println("Usuario modificado con éxito.");
+         } else {
+             System.out.println("No se pudo modificar el usuario. Compruebe si el ID es correcto.");
+         }
+
+     } catch (SQLException e) {
+         throw new ConexionFallidaException("Error al modificar el usuario: " + e.getMessage());
+     }
+ }
+ public static List<String> obtenerTodosLosUsuarios() throws ConexionFallidaException {
+	    List<String> usuarios = new ArrayList<>();
+
+	    // Consulta SQL para obtener todos los nombres de usuario
+	    String sql = "SELECT nombreUsuario FROM usuario";
+
+	    try (Connection conn = DatabaseConnector.getConnection();
+	        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+	        // Ejecutar la consulta SQL y obtener los resultados
+	        ResultSet rs = stmt.executeQuery();
+
+	        // Procesar el ResultSet y añadir cada nombre de usuario a la lista
+	        while (rs.next()) {
+	            String nombreUsuario = rs.getString("nombreUsuario");
+	            usuarios.add(nombreUsuario);
+	        }
+
+	    } catch (SQLException e) {
+	        throw new ConexionFallidaException("Error al obtener todos los usuarios: " + e.getMessage());
+	    }
+
+	    return usuarios;
+	}
+
+    
 }
 
 
