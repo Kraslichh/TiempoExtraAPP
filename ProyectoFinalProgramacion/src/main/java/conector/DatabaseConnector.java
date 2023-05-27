@@ -20,5 +20,7 @@ public class DatabaseConnector {
             throw new ConexionFallidaException("Fallo al conectar a la base de datos.");
         }
     }
+    
+    
 }
 

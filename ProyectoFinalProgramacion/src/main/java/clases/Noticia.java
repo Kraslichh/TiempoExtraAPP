@@ -97,7 +97,7 @@ public class Noticia extends ElementoConNombre {
             // Verificar si la inserción fue exitosa
             if (rowsAffected == 1) {
                 System.out.println("Noticia creada exitosamente.");
-                Usuario.escribirLog("El usuario " + autor.getNombreUsuario() + " ha creado una noticia el " + LocalDateTime.now());
+                Usuario.escribirLog("El usuario " + autor.getNombreUsuario() +" ha creado una noticia el " + LocalDateTime.now()+" Con el Titulo:"+nombre);
             } else {
                 System.out.println("No se pudo crear la noticia.");
             }

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -288,7 +289,12 @@ public class Usuario extends ElementoConNombre {
     
 
  // Método para eliminar un usuario
-    public static void eliminarUsuario(String nombreUsuario) throws ConexionFallidaException {
+    public static void eliminarUsuario(Usuario admin, String nombreUsuario) throws ConexionFallidaException {
+        // Verificar si el administrador es realmente un administrador
+        if (!admin.isAdmin()) {
+            throw new ConexionFallidaException("Error al eliminar el usuario: el usuario que intenta realizar la acción no es un administrador");
+        }
+
         // Consulta SQL para eliminar un usuario
         String sql = "DELETE FROM usuario WHERE nombreUsuario = ?";
 
@@ -303,6 +309,7 @@ public class Usuario extends ElementoConNombre {
 
             if (filasEliminadas > 0) {
                 System.out.println("Usuario eliminado con éxito.");
+                Usuario.escribirLog("El administrador " + admin.getNombreUsuario() + " eliminó el usuario " + nombreUsuario + " el " + LocalDateTime.now());
             } else {
                 System.out.println("No se pudo eliminar el usuario. Compruebe si el nombre de usuario es correcto.");
             }
@@ -330,15 +337,17 @@ public class Usuario extends ElementoConNombre {
         return registros;
     }
  // Método para modificar un usuario
- public static void modificarUsuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) throws ConexionFallidaException {
+ public static void modificarUsuario(Usuario admin, String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) throws ConexionFallidaException {
+	 if (!admin.isAdmin()) {
+         throw new ConexionFallidaException("Error al eliminar el usuario: el usuario que intenta realizar la acción no es un administrador");
+     }
      // Consulta SQL para modificar un usuario
-     String sql = "UPDATE usuario SET elementoConNombre_nombre = ?, nombreUsuario = ?, contraseña = ?, isEditor = ?, isAdmin = ? WHERE id = ?";
+     String sql = "UPDATE usuario SET nombreUsuario = ?, contraseña = ?, isEditor = ?, isAdmin = ? WHERE id = ?";
 
      try (Connection conn = DatabaseConnector.getConnection();
           PreparedStatement stmt = conn.prepareStatement(sql)) {
 
          // Establecer los parámetros en la consulta SQL
-         stmt.setString(1, nombre);
          stmt.setString(2, nombreUsuario);
          stmt.setString(3, contraseña);
          stmt.setBoolean(4, isEditor);
@@ -349,6 +358,7 @@ public class Usuario extends ElementoConNombre {
 
          if (filasModificadas > 0) {
              System.out.println("Usuario modificado con éxito.");
+             Usuario.escribirLog("El administrador " + admin.getNombreUsuario() + " Modificó el usuario " + nombreUsuario + " el " + LocalDateTime.now());
          } else {
              System.out.println("No se pudo modificar el usuario. Compruebe si el ID es correcto.");
          }

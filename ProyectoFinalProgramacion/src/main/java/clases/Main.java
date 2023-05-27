@@ -3,6 +3,7 @@ package clases;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import conector.DatabaseConnector;
 import enumeraciones.Categoria;
 import excepciones.ConexionFallidaException;
 
@@ -22,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.time.LocalDate;
+import clases.Suscripcion;
+
 
 public class Main {
     public static void main(String[] args) {
@@ -109,6 +113,82 @@ public class Main {
                     subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
                     subtitleLabel.setBounds(300, 40, 300, 30);
                     userWindow.add(subtitleLabel);
+                    
+                 // Agregar un botón para actualizar la sesión
+                    JButton sucripciones = new JButton("Obten tu premium");
+                    sucripciones.setBounds(50, 670, 180, 30);
+
+                    sucripciones.addActionListener(new ActionListener(){
+                        @Override
+                        public void actionPerformed(ActionEvent e){
+                            // Creando una ventana emergente.
+                            JFrame suscripcionWindow = new JFrame("Elige tu suscripción");
+                            suscripcionWindow.setSize(400, 300);
+
+                            // Agregando componentes a suscripcionWindow para permitir al usuario seleccionar una suscripción.
+                            JComboBox suscripcionBox = new JComboBox();
+                            JComboBox categoriaBox = new JComboBox();
+
+                            // Añadiendo las opciones de suscripción a suscripcionBox.
+                            suscripcionBox.addItem("Suscripción Mensual");
+                            suscripcionBox.addItem("Suscripción Anual");
+
+                            // Agrega las categorias al box de categorías
+                            for(Categoria cat : Categoria.values()) {
+                                categoriaBox.addItem(cat);
+                            }
+
+                            JButton aceptarButton = new JButton("Aceptar");
+                            aceptarButton.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
+                                    float precioPorMes = 10.0f; // Precio predefinido
+                                    // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
+                                    Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
+
+                                    // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
+                                    LocalDate fechaInicio = LocalDate.now();
+                                    LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+
+                                    // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
+                                 // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
+                                    Categoria categorias = (Categoria) categoriaBox.getSelectedItem();
+
+                                    // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
+                                    LocalDate fechaInicioB = LocalDate.now();
+                                    LocalDate fechaFinB = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+
+                                    // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
+                                    // Deberías tener un método o variable que te dé este valor.
+                                    int usuario_id = 1;
+									try {
+										usuario_id = Usuario.getIdPorNombreUsuario(username);
+									} catch (ConexionFallidaException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+
+                                    // Crea un objeto Suscripcion con estos datos
+                                    Suscripcion suscripcion = new Suscripcion(tipoSuscripcion, precioPorMes, categoria, fechaInicio, fechaFin);
+
+                                    // Llama al método para insertar la suscripción en la base de datos
+                                    Suscripcion.insertarSuscripcion(suscripcion, usuario_id);
+
+                                    JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
+                                    suscripcionWindow.dispose();
+                                }
+                            });
+
+                            suscripcionWindow.setLayout(new FlowLayout());
+                            suscripcionWindow.add(suscripcionBox);
+                            suscripcionWindow.add(categoriaBox);
+                            suscripcionWindow.add(aceptarButton);
+                            suscripcionWindow.setVisible(true);
+                        }
+                    });
+
+                    userWindow.add(sucripciones);
 
                     // Agregar un botón para actualizar la sesión
                     JButton refreshButton = new JButton("Actualizar");
@@ -375,7 +455,7 @@ public class Main {
                     	        // Acciones para administrar usuarios
                     	        String nombreUsuario = (String) listaUsuariosComboBox.getSelectedItem(); // Obtener el usuario seleccionado
                     	        try {
-                    	            Usuario.eliminarUsuario(nombreUsuario); // Llamar al método eliminarUsuario
+                    	            Usuario.eliminarUsuario(usuario, nombreUsuario); // Llamar al método eliminarUsuario
                     	            listaUsuariosComboBox.removeItem(nombreUsuario); // Eliminar el usuario del JComboBox
                     	            JOptionPane.showMessageDialog(null, "Usuario eliminado exitosamente!");
                     	        } catch (ConexionFallidaException ex) {
@@ -418,7 +498,6 @@ public class Main {
                     	    }
                     	});
 
-                    	// Agregar un botón para administrar contenido
                     	JButton manageContentButton = new JButton("Modificar Usuario");
                     	manageContentButton.setBounds(1000, 450, 150, 30);
                     	userWindow.add(manageContentButton);
@@ -426,9 +505,8 @@ public class Main {
                     	manageContentButton.addActionListener(new ActionListener() {
                     	    @Override
                     	    public void actionPerformed(ActionEvent e) {
-                    	        // Acciones para administrar contenido
                     	        JFrame modificarUsuarioWindow = new JFrame("Modificar Usuario");
-                    	        modificarUsuarioWindow.setSize(400, 400); // Ajusta el tamaño de la ventana según necesites
+                    	        modificarUsuarioWindow.setSize(500, 500); 
                     	        modificarUsuarioWindow.setLayout(null);
                     	        modificarUsuarioWindow.setVisible(true);
 
@@ -448,50 +526,60 @@ public class Main {
                     	        listaUsuariosComboBox.setBounds(100, 60, 200, 30);
                     	        modificarUsuarioWindow.add(listaUsuariosComboBox);
 
-                    	        // Aquí agregar los demás campos necesarios para recoger la información del usuario (nombre, nombreUsuario, contraseña, isEditor, isAdmin)
-                    	        // ...
+                    	        JLabel nombreUsuarioLabel = new JLabel("Nombre de Usuario");
+                    	        nombreUsuarioLabel.setBounds(100, 170, 200, 30);
+                    	        modificarUsuarioWindow.add(nombreUsuarioLabel);
+
+                    	        JTextField nombreUsuarioTextField = new JTextField();
+                    	        nombreUsuarioTextField.setBounds(100, 200, 200, 30);
+                    	        modificarUsuarioWindow.add(nombreUsuarioTextField);
+
+                    	        JLabel contraseñaLabel = new JLabel("Contraseña");
+                    	        contraseñaLabel.setBounds(100, 240, 200, 30);
+                    	        modificarUsuarioWindow.add(contraseñaLabel);
+
+                    	        JTextField contraseñaTextField = new JTextField();
+                    	        contraseñaTextField.setBounds(100, 270, 200, 30);
+                    	        modificarUsuarioWindow.add(contraseñaTextField);
+
+                    	        JCheckBox isEditorCheckBox = new JCheckBox("Es Editor");
+                    	        isEditorCheckBox.setBounds(100, 310, 200, 30);
+                    	        modificarUsuarioWindow.add(isEditorCheckBox);
+
+                    	        JCheckBox isAdminCheckBox = new JCheckBox("Es Administrador");
+                    	        isAdminCheckBox.setBounds(100, 350, 200, 30);
+                    	        modificarUsuarioWindow.add(isAdminCheckBox);
 
                     	        JButton modificarUsuarioButton = new JButton("Confirmar modificación");
-                    	        modificarUsuarioButton.setBounds(100, 320, 200, 30);
+                    	        modificarUsuarioButton.setBounds(100, 400, 200, 30);
                     	        modificarUsuarioWindow.add(modificarUsuarioButton);
 
                     	        modificarUsuarioButton.addActionListener(new ActionListener() {
                     	            @Override
                     	            public void actionPerformed(ActionEvent e) {
-                    	            	String nombreUsuario = (String) listaUsuariosComboBox.getSelectedItem();
-                    	            	// Aquí recoger los demás campos necesarios para modificar el usuario (nombreUsuario, nuevoNombreUsuario, contraseña, isEditor, isAdmin)
-                    	            	String nuevoNombreUsuario = "Nuevo nombre de usuario";  // Ejemplo: Recoger el nuevo nombre de usuario desde algún campo de entrada
-                    	            	String nuevaContraseña = "Nueva contraseña";  // Ejemplo: Recoger la nueva contraseña del usuario desde algún campo de entrada
-                    	            	boolean esEditor = true;  // Ejemplo: Recoger el estado "isEditor" desde algún campo de entrada, aquí se asume que se seleccionó como verdadero (true)
-                    	            	boolean esAdmin = false;  // Ejemplo: Recoger el estado "isAdmin" desde algún campo de entrada, aquí se asume que se seleccionó como falso (false)
+                    	            	
+                    	                String nombreUsuario = (String) listaUsuariosComboBox.getSelectedItem();
+                    	                String nuevoNombreUsuario = nombreUsuarioTextField.getText();
+                    	                String nuevaContraseña = contraseñaTextField.getText();
+                    	                boolean esEditor = isEditorCheckBox.isSelected();
+                    	                boolean esAdmin = isAdminCheckBox.isSelected();
 
-                    	            	// Luego de recoger los valores necesarios, puedes utilizarlos en tu consulta SQL para modificar el usuario en la tabla "usuario"
-
-                    	            	// Código para establecer la conexión con la base de datos y ejecutar la consulta SQL correspondiente
-                    	            	try {
-                    	            	    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/tiempoextrabd", "root", "");
-                    	            	    Statement statement = connection.createStatement();
-                    	            	    
-                    	            	    String sql = "UPDATE usuario SET nombreUsuario = '" + nuevoNombreUsuario + "', contraseña = '" + nuevaContraseña + "', isEditor = " + (esEditor ? 1 : 0) + ", isAdmin = " + (esAdmin ? 1 : 0) + " WHERE nombreUsuario = '" + nombreUsuario + "'";                    	            	    
-                    	            	    statement.executeUpdate(sql);
-                    	            	    
-                    	            	    // Cerrar la conexión y realizar cualquier otra tarea necesaria
-                    	            	    statement.close();
-                    	            	    connection.close();
-                    	            	    
-                    	            	    // Realizar alguna acción adicional después de modificar el usuario
-                    	            	    // ...
-                    	            	    
-                    	            	    System.out.println("El usuario ha sido modificado exitosamente.");
-                    	            	} catch (SQLException modificacione) {
-                    	            		modificacione.printStackTrace();
-                    	            	    // Manejar cualquier error relacionado con la conexión o la consulta SQL
-                    	            	}
 
                     	                try {
-                    	                    Usuario.modificarUsuario(nombreUsuario, password, username, false, false/*idUsuario, nombre, nombreUsuario, contraseña, isEditor, isAdmin*/);
+                    	                    Connection connection = DatabaseConnector.getConnection();
+                    	                    Statement statement = connection.createStatement();
+
+                    	                    String sql = "UPDATE usuario SET nombreUsuario = '" + nuevoNombreUsuario + "', contraseña = '" + nuevaContraseña + "', isEditor = " + (esEditor ? 1 : 0) + ", isAdmin = " + (esAdmin ? 1 : 0) + " WHERE nombreUsuario = '" + nombreUsuario + "'";
+                    	                    statement.executeUpdate(sql);
+
+                    	                    statement.close();
+                    	                    connection.close();
+
+                    	                    System.out.println("El usuario ha sido modificado exitosamente.");
+                    	                    Usuario.escribirLog("El administrador " + usuario.getNombreUsuario() + " eliminó el usuario " + nombreUsuario + " el " + LocalDateTime.now());
                     	                    JOptionPane.showMessageDialog(null, "Usuario modificado exitosamente!");
-                    	                } catch (ConexionFallidaException ex) {
+                    	                } catch (SQLException | ConexionFallidaException ex) {
+                    	                    ex.printStackTrace();
                     	                    JOptionPane.showMessageDialog(null, "Error al modificar el usuario: " + ex.getMessage());
                     	                }
                     	            }
