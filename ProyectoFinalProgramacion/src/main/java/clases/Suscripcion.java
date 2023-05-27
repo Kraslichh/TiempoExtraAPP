@@ -67,17 +67,22 @@ public class Suscripcion extends ElementoConNombre {
 
     public static void insertarSuscripcion(Suscripcion suscripcion, int usuarioId) {
         try (Connection connection = DatabaseConnector.getConnection()) {
-            String query = "INSERT INTO suscripcion (nombre, precioPorMes, categoria, fechaInicio, fechaFin, usuario_id) VALUES (?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO suscripcion (nombre, precioPorMes, fechaInicio, fechaFin, usuario_id) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement statement = connection.prepareStatement(query);
 
             statement.setString(1, suscripcion.getNombre());
             statement.setFloat(2, suscripcion.getPrecioPorMes());
-            statement.setString(3, suscripcion.getCategoria().toString());
-            statement.setDate(4, java.sql.Date.valueOf(suscripcion.getFechaInicio()));
-            statement.setDate(5, java.sql.Date.valueOf(suscripcion.getFechaFin()));
-            statement.setInt(6, usuarioId);
+            statement.setDate(3, java.sql.Date.valueOf(suscripcion.getFechaInicio()));
+            statement.setDate(4, java.sql.Date.valueOf(suscripcion.getFechaFin()));
+            statement.setInt(5, usuarioId);
 
-            statement.executeUpdate();
+            int rowsAffected = statement.executeUpdate();
+
+            if (rowsAffected == 1) {
+                // Actualizar el estado premium del usuario
+                boolean esPremium = verificarSuscripcionActiva(usuarioId);
+                actualizarEstadoPremium(usuarioId, esPremium);
+            }
         } catch (SQLException | ConexionFallidaException ex) {
             ex.printStackTrace();
         }
@@ -102,6 +107,52 @@ public class Suscripcion extends ElementoConNombre {
 
         return false;
     }
+    
+    public static void actualizarEstadoPremium(int usuarioId, boolean esPremium) {
+        try (Connection connection = DatabaseConnector.getConnection()) {
+            String query = "UPDATE usuario SET isPremium = ? WHERE id = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            statement.setBoolean(1, esPremium);
+            statement.setInt(2, usuarioId);
+
+            statement.executeUpdate();
+        } catch (SQLException | ConexionFallidaException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    
+public String obtenerCategoriaSuscripcion(int userId) {
+    String categoria = null;
+    String sql = "SELECT categoria, fechaInicio, fechaFin FROM suscripcion WHERE usuario_id = ?";
+
+    try (Connection conn = DatabaseConnector.getConnection();
+         PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+        preparedStatement.setInt(1, userId);
+
+        try (ResultSet rs = preparedStatement.executeQuery()) {
+            while (rs.next()) {
+                Date fechaInicio = rs.getDate("fechaInicio");
+                Date fechaFin = rs.getDate("fechaFin");
+                LocalDate fechaInicioLocal = fechaInicio.toLocalDate();
+                LocalDate fechaFinLocal = fechaFin.toLocalDate();
+                LocalDate ahora = LocalDate.now();
+
+                if (ahora.isAfter(fechaInicioLocal) && ahora.isBefore(fechaFinLocal)) {
+                    categoria = rs.getString("categoria");
+                    break;
+                }
+            }
+        }
+
+    } catch (SQLException | ConexionFallidaException e) {
+        e.printStackTrace();
+    }
+
+    return categoria;
+}
 
 
 

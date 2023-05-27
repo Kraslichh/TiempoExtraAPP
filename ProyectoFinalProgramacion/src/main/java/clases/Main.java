@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
@@ -89,6 +91,7 @@ public class Main {
 
                 // Crear una nueva instancia de Usuario
                 Usuario usuario = new Usuario(username, username, password, false, false);
+                
 
                 // Intentar iniciar sesión
                 try {
@@ -96,6 +99,7 @@ public class Main {
 
                     // Si la línea anterior no lanza una excepción, la autenticación fue exitosa
                     loginFrame.dispose(); // Cerrar la ventana de inicio de sesión
+                    Usuario.setUsuarioActual(usuario); 
 
                     // Crear una nueva ventana después de iniciar sesión
                     JFrame userWindow = new JFrame("Bienvenido, " + username);
@@ -696,7 +700,10 @@ public class Main {
 
                 // Mostrar las noticias actualizadas en los paneles correspondientes
                 List<Noticia> noticiasActualizadas = Noticia.mostrar_noticias();
+                System.out.println("Total de noticias: " + noticiasActualizadas.size());
                 for (Noticia noticia : noticiasActualizadas) {
+                    System.out.println("Noticia: " + noticia.getNombre());
+                    System.out.println("Es premium: " + noticia.isNoticiaPremium());
                     // Configurar el panel de la noticia y sus componentes
                     JPanel noticiaPanel = new JPanel();
                     noticiaPanel.setLayout(new BorderLayout());
@@ -761,54 +768,17 @@ public class Main {
                     // Agregar el panel de información al panel de la noticia correspondiente
                     noticiaPanel.add(infoPanel, BorderLayout.CENTER);
 
-                    // Agregar un ActionListener al panel de la noticia para abrir una ventana con los detalles de la noticia
-                 // Agregar un MouseListener al panel de la noticia para abrir una ventana con los detalles de la noticia
-                    noticiaPanel.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            // Abrir una nueva ventana para mostrar los detalles de la noticia
-                            JFrame noticiaFrame = new JFrame(noticia.getNombre());
-                            noticiaFrame.setSize(600, 600);
+                    Usuario usuarioActual = Usuario.obtenerUsuarioActual();
 
-                            // Panel para los detalles de la noticia
-                            JPanel detallesPanel = new JPanel();
-                            detallesPanel.setLayout(new BoxLayout(detallesPanel, BoxLayout.Y_AXIS));
-                            detallesPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-                            // Título de la noticia
-                            JLabel tituloLabel = new JLabel(noticia.getNombre());
-                            tituloLabel.setFont(new Font("Arial", Font.BOLD, 16));
-                            tituloLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                            detallesPanel.add(tituloLabel);
-
-                            // Contenido de la noticia
-                            JTextArea contenidoTextArea = new JTextArea(noticia.getContenido());
-                            contenidoTextArea.setFont(new Font("Arial", Font.PLAIN, 14));
-                            contenidoTextArea.setEditable(false);
-                            contenidoTextArea.setLineWrap(true);
-                            contenidoTextArea.setWrapStyleWord(true);
-                            JScrollPane contenidoScrollPane = new JScrollPane(contenidoTextArea);
-                            detallesPanel.add(contenidoScrollPane);
-
-                            // Fecha de publicación
-                            JLabel fechaLabel = new JLabel("Fecha: " + noticia.getFechaPublicacion());
-                            fechaLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-                            detallesPanel.add(fechaLabel);
-
-                            // Autor
-                            JLabel autorLabel = new JLabel("Autor: " + noticia.getAutor().getNombreUsuario());
-                            autorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-                            detallesPanel.add(autorLabel);
-
-                            noticiaFrame.add(detallesPanel);
-                            noticiaFrame.setVisible(true);
-                        }
-                    });
-
-                    // Agregar el panel de la noticia al panel correspondiente (premium o regular)
+                    // Verificar si el usuario actual es premium
+                    boolean esPremium = esUsuarioPremium(usuarioActual.getNombreUsuario());
                     if (noticia.isNoticiaPremium()) {
-                        premiumNewsPanel.add(noticiaPanel);
+                        if (esPremium) {
+                            // Si la noticia es premium y el usuario es premium, agregamos la noticia al panel premium
+                            premiumNewsPanel.add(noticiaPanel);
+                        }
                     } else {
+                        // Si la noticia no es premium, independientemente del estado de premium del usuario, agregamos la noticia al panel regular
                         regularNewsPanel.add(noticiaPanel);
                     }
                 }
@@ -841,4 +811,24 @@ public class Main {
             JOptionPane.showMessageDialog(userWindow, "Error al actualizar las noticias: " + ex.getMessage());
         }
     }
+
+    private static boolean esUsuarioPremium(String nombreUsuario) throws ConexionFallidaException {
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT isPremium FROM usuario WHERE nombreUsuario = ?")) {
+
+            stmt.setString(1, nombreUsuario);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int isPremiumValue = rs.getInt("isPremium");
+                return isPremiumValue == 1;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
 }

@@ -6,14 +6,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
 import excepciones.ConexionFallidaException;
@@ -26,6 +28,9 @@ public class Usuario extends ElementoConNombre {
     private boolean isAdmin;
     private HashSet<Suscripcion> suscripcionesActivas;
     private List<Noticia> noticiasCreadas;
+    private static int idUsuarioActual;
+    private boolean premium;
+    private int id;
 
     // Constructores
     public Usuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) {
@@ -75,6 +80,55 @@ public class Usuario extends ElementoConNombre {
     public HashSet<Suscripcion> getSuscripcionesActivas() {
         return suscripcionesActivas;
     }
+    
+
+    public static int getIdUsuarioActual() {
+        return idUsuarioActual;
+    }
+
+    public static void setIdUsuarioActual(int id) {
+        idUsuarioActual = id;
+    }
+    public static Usuario obtenerUsuarioActual() {
+        return usuarioActual;
+    }
+
+    public static void establecerUsuarioActual(Usuario usuario) {
+        usuarioActual = usuario;
+    }
+    
+    public boolean isPremium() {
+        try {
+            // Obtener conexión a la base de datos
+            Connection connection = DatabaseConnector.getConnection();
+
+            // Preparar la consulta SQL
+            String query = "SELECT * FROM suscripcion WHERE usuario_id = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, this.id);
+
+            // Ejecutar la consulta
+            ResultSet resultSet = stmt.executeQuery();
+
+            // Comprobar si el usuario tiene una suscripción activa
+            if (resultSet.next()) {
+                // Si la suscripción existe, comprobar si sigue vigente
+                Timestamp fechaFin = resultSet.getTimestamp("fecha_fin");
+                return fechaFin.toInstant().isAfter(Instant.now());
+            }
+
+        } catch (ConexionFallidaException | SQLException e) {
+            // Manejar las excepciones que puedan ocurrir al conectar a la base de datos o ejecutar la consulta
+            e.printStackTrace();
+        }
+
+        // Si llegamos a este punto, es porque el usuario no tiene una suscripción activa o ha ocurrido un error, por lo que retornamos false
+        return false;
+    }
+
+    public void setPremium(boolean premium) {
+        this.premium = premium;
+    }
 
     public void addSuscripcion(Suscripcion suscripcion) {
         this.suscripcionesActivas.add(suscripcion);
@@ -82,6 +136,40 @@ public class Usuario extends ElementoConNombre {
 
     public void removeSuscripcion(Suscripcion suscripcion) {
         this.suscripcionesActivas.remove(suscripcion);
+    }
+    private static Usuario usuarioActual; // Variable estática para almacenar el usuario actual
+
+    // Método para establecer el usuario actual
+    public static void setUsuarioActual(Usuario usuario) {
+        usuarioActual = usuario;
+    }
+    public static Usuario getUsuarioActual() {
+        return usuarioActual;
+    }
+    
+    public boolean isUsuarioActualPremium() {
+        // Verificar si el usuario actual es premium
+        int usuarioId = Usuario.getIdUsuarioActual();
+        Connection connection = null;
+        try {
+            connection = DatabaseConnector.getConnection();
+        } catch (ConexionFallidaException e) {
+            e.printStackTrace();
+        }
+
+        String query = "SELECT isPremium FROM usuario WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, usuarioId);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getBoolean("isPremium");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false; // Si no se encontró el usuario o no se pudo obtener el valor de isPremium, se asume que no es premium
     }
 
     public List<Noticia> getNoticiasCreadas() throws ConexionFallidaException {
@@ -142,7 +230,11 @@ public class Usuario extends ElementoConNombre {
 
             if (resultSet.next()) {
                 System.out.println("¡Inicio de sesión exitoso!");
+                // Establecer el id del usuario actual
+                Usuario.setIdUsuarioActual(resultSet.getInt("id"));
+                Usuario.usuarioActual = this;
                 // Establecer las propiedades del usuario según los resultados de la consulta
+
                 this.isEditor = resultSet.getBoolean("isEditor");
                 this.isAdmin = resultSet.getBoolean("isAdmin");
             } else {
@@ -391,7 +483,8 @@ public class Usuario extends ElementoConNombre {
 
 	    return usuarios;
 	}
-
+ 
+ 
     
 }
 
