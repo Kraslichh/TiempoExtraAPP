@@ -1,12 +1,17 @@
 package clases;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -30,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
@@ -295,13 +301,13 @@ public class Noticia extends ElementoConNombre {
     public static List<Noticia> getNoticiasCreadas(Usuario usuario) throws ConexionFallidaException {
         List<Noticia> noticias = new ArrayList<>();
 
-        // Consulta SQL para obtener todas las noticias creadas por el usuario
-        String sql = "SELECT * FROM noticia WHERE autor_id = ?";
+        // Consulta SQL para obtener todas las noticias creadas por el usuario y ordenar por título
+        String sql = "SELECT * FROM noticia WHERE autor_id = ? ORDER BY elementoConNombre_nombre";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        	stmt.setInt(1, Usuario.getIdPorNombreUsuario(usuario.getNombre()));
+            stmt.setInt(1, Usuario.getIdPorNombreUsuario(usuario.getNombre()));
 
             // Ejecutar la consulta SQL
             ResultSet rs = stmt.executeQuery();
@@ -375,24 +381,28 @@ public class Noticia extends ElementoConNombre {
                 // Limpiar el panel de noticias
                 newsPanel.removeAll();
 
-                // Crear paneles separados para las noticias premium y las demás noticias
-                JPanel premiumNewsPanel = new JPanel();
-                premiumNewsPanel.setLayout(new BoxLayout(premiumNewsPanel, BoxLayout.Y_AXIS));
+                // Crear un solo panel para todas las noticias
+                JPanel newsContainerPanel = new JPanel();
+                newsContainerPanel.setLayout(new BoxLayout(newsContainerPanel, BoxLayout.Y_AXIS));
+                newsContainerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-                JPanel regularNewsPanel = new JPanel();
-                regularNewsPanel.setLayout(new BoxLayout(regularNewsPanel, BoxLayout.Y_AXIS));
-
-                // Mostrar las noticias actualizadas en los paneles correspondientes
+                // Mostrar las noticias actualizadas en el panel
                 List<Noticia> noticiasActualizadas = Noticia.mostrar_noticias();
-                System.out.println("Total de noticias: " + noticiasActualizadas.size());
                 for (Noticia noticia : noticiasActualizadas) {
-                    System.out.println("Noticia: " + noticia.getNombre());
-                    System.out.println("Es premium: " + noticia.isNoticiaPremium());
                     // Configurar el panel de la noticia y sus componentes
                     JPanel noticiaPanel = new JPanel();
                     noticiaPanel.setLayout(new BorderLayout());
-                    noticiaPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+                    noticiaPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                     noticiaPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                    // Agregar un MouseListener al panel de la noticia
+                    noticiaPanel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            // Abrir la ventana de detalles de la noticia al hacer clic en el panel
+                            abrirVentanaDetallesNoticia(noticia);
+                        }
+                    });
 
                     // Obtener la imagen desde una URL
                     try {
@@ -415,38 +425,39 @@ public class Noticia extends ElementoConNombre {
                         e.printStackTrace();
                     }
 
-                    // Panel para el contenido, la fecha y el autor de la noticia
+                 // Panel para el contenido, la fecha y el autor de la noticia
                     JPanel infoPanel = new JPanel();
-                    infoPanel.setLayout(new GridLayout(0, 2));
+                    infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+                    infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear los componentes a la izquierda
 
                     // Título de la noticia
-                    JLabel tituloLabel = new JLabel(noticia.getNombre());
+                    JLabel tituloLabel = new JLabel("Título: " + noticia.getNombre());
                     tituloLabel.setFont(new Font("Arial", Font.BOLD, 16));
                     tituloLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 0));
+                    tituloLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear el título a la izquierda
 
-                    // Contenido de la noticia
-                    JTextArea contenidoTextArea = new JTextArea(noticia.getContenido());
-                    contenidoTextArea.setFont(new Font("Arial", Font.PLAIN, 14));
-                    contenidoTextArea.setEditable(false);
-                    contenidoTextArea.setLineWrap(true);
-                    contenidoTextArea.setWrapStyleWord(true);
+                 // Contenido de la noticia
+                    String contenidoTexto = "<html><b>Contenido:</b> " + noticia.getContenido() + "</html>";
+                    JLabel contenidoLabel = new JLabel(contenidoTexto);
+                    contenidoLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+                    contenidoLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear el contenido a la izquierda
+
+
 
                     // Fecha de publicación
                     JLabel fechaLabel = new JLabel("Fecha: " + noticia.getFechaPublicacion());
                     fechaLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                    fechaLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear la fecha a la izquierda
 
                     // Autor
                     JLabel autorLabel = new JLabel("Autor: " + noticia.getAutor().getNombreUsuario());
                     autorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                    autorLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear el autor a la izquierda
 
                     // Agregar componentes al panel de información
-                    infoPanel.add(new JLabel("Título:"));
                     infoPanel.add(tituloLabel);
-                    infoPanel.add(new JLabel("Contenido:"));
-                    infoPanel.add(contenidoTextArea);
-                    infoPanel.add(new JLabel("Fecha:"));
+                    infoPanel.add(contenidoLabel);
                     infoPanel.add(fechaLabel);
-                    infoPanel.add(new JLabel("Autor:"));
                     infoPanel.add(autorLabel);
 
                     // Agregar el panel de información al panel de la noticia correspondiente
@@ -456,36 +467,17 @@ public class Noticia extends ElementoConNombre {
 
                     // Verificar si el usuario actual es premium
                     boolean esPremium = esUsuarioPremium(usuarioActual.getNombreUsuario());
-                    if (noticia.isNoticiaPremium()) {
-                        if (esPremium) {
-                            // Si la noticia es premium y el usuario es premium, agregamos la noticia al panel premium
-                            premiumNewsPanel.add(noticiaPanel);
-                        }
-                    } else {
-                        // Si la noticia no es premium, independientemente del estado de premium del usuario, agregamos la noticia al panel regular
-                        regularNewsPanel.add(noticiaPanel);
+                    if (noticia.isNoticiaPremium() && esPremium) {
+                        // Si la noticia es premium y el usuario es premium, agregamos la noticia al panel
+                        newsContainerPanel.add(noticiaPanel);
+                    } else if (!noticia.isNoticiaPremium()) {
+                        // Si la noticia no es premium, independientemente del estado de premium del usuario, agregamos la noticia al panel
+                        newsContainerPanel.add(noticiaPanel);
                     }
                 }
 
-                // Crear un panel contenedor para los dos paneles de noticias
-                JPanel newsContainerPanel = new JPanel();
-                newsContainerPanel.setLayout(new GridLayout(1, 2));
-                newsContainerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-                // Agregar el panel de noticias premium al panel contenedor
-                JPanel premiumPanelWrapper = new JPanel(new BorderLayout());
-                premiumPanelWrapper.add(new JLabel("Noticias Premium"), BorderLayout.NORTH);
-                premiumPanelWrapper.add(new JScrollPane(premiumNewsPanel), BorderLayout.CENTER);
-                newsContainerPanel.add(premiumPanelWrapper);
-
-                // Agregar el panel de noticias regulares al panel contenedor
-                JPanel regularPanelWrapper = new JPanel(new BorderLayout());
-                regularPanelWrapper.add(new JLabel("Otras Noticias"), BorderLayout.NORTH);
-                regularPanelWrapper.add(new JScrollPane(regularNewsPanel), BorderLayout.CENTER);
-                newsContainerPanel.add(regularPanelWrapper);
-
-                // Agregar el panel contenedor al panel de noticias principal
-                newsPanel.add(newsContainerPanel);
+                // Agregar el panel de noticias al panel principal
+                newsPanel.add(new JScrollPane(newsContainerPanel));
 
                 // Actualizar el panel de noticias principal
                 newsPanel.revalidate();
@@ -496,6 +488,60 @@ public class Noticia extends ElementoConNombre {
         }
     }
 
+    private static void abrirVentanaDetallesNoticia(Noticia noticia) {
+        // Crear el JFrame con los detalles de la noticia
+        JFrame detallesNoticiaFrame = new JFrame("Detalles de la Noticia");
+        detallesNoticiaFrame.setSize(400, 400);
+        detallesNoticiaFrame.setLocationRelativeTo(null);
+        
+        // Crear un panel principal
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+        
+        // Crear y configurar los componentes de la noticia
+        JLabel tituloLabel = new JLabel(noticia.getNombre());
+        tituloLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        JTextArea contenidoTextArea = new JTextArea(noticia.getContenido());
+        contenidoTextArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        contenidoTextArea.setEditable(false);
+        contenidoTextArea.setLineWrap(true);
+        contenidoTextArea.setWrapStyleWord(true);
+        
+        JLabel fechaLabel = new JLabel("Fecha: " + noticia.getFechaPublicacion());
+        fechaLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        JLabel autorLabel = new JLabel("Autor: " + noticia.getAutor().getNombreUsuario());
+        autorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        // Añadir los componentes al panel principal
+        mainPanel.add(tituloLabel);
+        mainPanel.add(contenidoTextArea);
+        mainPanel.add(fechaLabel);
+        mainPanel.add(autorLabel);
+        
+        // Añadir el panel principal al frame
+        detallesNoticiaFrame.add(mainPanel);
+
+        // Crear un Timer para cambiar el color del título
+        Timer timer = new Timer(500, new ActionListener() {
+            private boolean isBlack = false;
+
+            public void actionPerformed(ActionEvent e) {
+                if (isBlack) {
+                    tituloLabel.setForeground(Color.BLACK);
+                } else {
+                    tituloLabel.setForeground(Color.RED);
+                }
+                isBlack = !isBlack;
+            }
+        });
+        timer.start();
+
+        // Hacer visible el frame
+        detallesNoticiaFrame.setVisible(true);
+    }
+    
     private static boolean esUsuarioPremium(String nombreUsuario) throws ConexionFallidaException {
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT isPremium FROM usuario WHERE nombreUsuario = ?")) {
@@ -513,5 +559,10 @@ public class Noticia extends ElementoConNombre {
         }
 
         return false;
+    }
+    
+    @Override
+    public String toString() {
+        return this.getNombre();
     }
 }

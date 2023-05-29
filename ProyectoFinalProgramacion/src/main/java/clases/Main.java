@@ -1,6 +1,11 @@
 package clases;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineEvent;
 import javax.swing.*;
 
 import conector.DatabaseConnector;
@@ -12,6 +17,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -105,26 +111,76 @@ public class Main {
                     JFrame userWindow = new JFrame("Bienvenido, " + username);
                     userWindow.setSize(1200, 800);
                     userWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    
-                    
-                    // Añade el título y el subtítulo
-                    JLabel titleLabel = new JLabel("TiempoExtra");
-                    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-                    titleLabel.setBounds(350, 10, 200, 30);
-                    userWindow.add(titleLabel);
 
-                    JLabel subtitleLabel = new JLabel("El Mejor periódico deportivo del mundo");
-                    subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-                    subtitleLabel.setBounds(300, 40, 300, 30);
-                    userWindow.add(subtitleLabel);
+
+
+                 // Cargar la imagen de fondo desde una URL
+                 URL imageUrl = new URL("https://fondosmil.com/fondo/5782.jpg");  
+                 Image image = ImageIO.read(imageUrl);
+                 Image scaledImage = image.getScaledInstance(userWindow.getWidth(), userWindow.getHeight(), Image.SCALE_SMOOTH);
+
+                 // Crear un JLabel para la imagen de fondo y añadir la imagen
+                 JLabel backgroundLabel = new JLabel(new ImageIcon(scaledImage));
+                 backgroundLabel.setBounds(0, 0, userWindow.getWidth(), userWindow.getHeight());
+                 
+              // Reproducir música con volumen ajustado
+                 String musicFilePath = "himnochampions.wav";
+                 File musicFile = new File(musicFilePath);
+                 Clip clip = AudioSystem.getClip();
+                 clip.open(AudioSystem.getAudioInputStream(musicFile));
+
+                 // Ajustar el volumen al 50%
+                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                 float volume = gainControl.getMinimum() + ((gainControl.getMaximum() - gainControl.getMinimum()) * 0.50f);
+                 gainControl.setValue(volume);
+
+                 // Agregar el LineListener para reiniciar la reproducción
+                 clip.addLineListener(event -> {
+                     if (event.getType() == LineEvent.Type.STOP) {
+                         clip.setFramePosition(0); // Reiniciar la posición del clip al inicio
+                         clip.start(); // Volver a reproducir el audio
+                     }
+                 });
+
+                 clip.start(); // Iniciar la reproducción del audio
+
+              // Añade el título y el subtítulo
+                 JLabel titleLabel = new JLabel("TiempoExtra");
+                 titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+                 titleLabel.setBounds(350, 10, 200, 30);
+                 titleLabel.setForeground(Color.WHITE);
+
+                 JLabel subtitleLabel = new JLabel("El Mejor periódico deportivo del mundo");
+                 subtitleLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+                 subtitleLabel.setBounds(300, 40, 300, 30);
+                 subtitleLabel.setForeground(Color.WHITE);
+
+                    // Asegurar que los labels son transparentes para que la imagen se vea
+                    titleLabel.setOpaque(false);
+                    subtitleLabel.setOpaque(false);
+
+                    backgroundLabel.add(titleLabel);
+                    backgroundLabel.add(subtitleLabel);
+
                     
                  // Agregar un botón para actualizar la sesión
                     JButton sucripciones = new JButton("Obten tu premium");
                     sucripciones.setBounds(50, 670, 180, 30);
 
-                    sucripciones.addActionListener(new ActionListener(){
+                    sucripciones.addActionListener(new ActionListener() {
                         @Override
-                        public void actionPerformed(ActionEvent e){
+                        public void actionPerformed(ActionEvent e) {
+                            // Cargar y reproducir el sonido de dinero
+                            try {
+                                String soundFilePath = "cash-register-purchase-87313.wav";
+                                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));
+                                Clip clip = AudioSystem.getClip();
+                                clip.open(audioInputStream);
+                                clip.start();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+
                             // Creando una ventana emergente.
                             JFrame suscripcionWindow = new JFrame("Elige tu suscripción");
                             suscripcionWindow.setSize(400, 300);
@@ -141,6 +197,7 @@ public class Main {
                             for(Categoria cat : Categoria.values()) {
                                 categoriaBox.addItem(cat);
                             }
+                            
 
                             JButton aceptarButton = new JButton("Aceptar");
                             aceptarButton.addActionListener(new ActionListener() {
@@ -248,25 +305,62 @@ public class Main {
                                 // Abrir una nueva ventana para introducir los detalles de la noticia
                                 JFrame createNewsFrame = new JFrame("Crear Noticia");
                                 createNewsFrame.setSize(500, 500);
-                                createNewsFrame.setLayout(new FlowLayout());
+                                createNewsFrame.setLayout(new GridBagLayout());
+
+                                GridBagConstraints constraints = new GridBagConstraints();
+                                constraints.fill = GridBagConstraints.HORIZONTAL;
+
+                                // Etiquetas descriptivas
+                                JLabel titleLabel = new JLabel("Título:");
+                                JLabel contentLabel = new JLabel("Contenido:");
+                                JLabel categoryLabel = new JLabel("Categoría:");
+                                JLabel premiumLabel = new JLabel("Noticia Premium:");
 
                                 // Campos de texto para los detalles de la noticia
                                 JTextField titleField = new JTextField(20);
                                 JTextArea contentArea = new JTextArea(5, 20);
                                 JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
-                                JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium");
-
-                                // Añadir los campos a la ventana
-                                createNewsFrame.add(new JLabel("Título:"));
-                                createNewsFrame.add(titleField);
-                                createNewsFrame.add(new JLabel("Contenido:"));
-                                createNewsFrame.add(contentArea);
-                                createNewsFrame.add(new JLabel("Categoría:"));
-                                createNewsFrame.add(categoryBox);
-                                createNewsFrame.add(premiumCheckBox);
+                                JCheckBox premiumCheckBox = new JCheckBox();
 
                                 // Botón para confirmar la creación de la noticia
                                 JButton confirmButton = new JButton("Crear Noticia");
+
+                                // Configuración de los componentes y su colocación en la ventana
+                                constraints.gridx = 0;
+                                constraints.gridy = 0;
+                                createNewsFrame.add(titleLabel, constraints);
+
+                                constraints.gridx = 1;
+                                createNewsFrame.add(titleField, constraints);
+
+                                constraints.gridx = 0;
+                                constraints.gridy = 1;
+                                createNewsFrame.add(contentLabel, constraints);
+
+                                constraints.gridx = 1;
+                                createNewsFrame.add(contentArea, constraints);
+
+                                constraints.gridx = 0;
+                                constraints.gridy = 2;
+                                createNewsFrame.add(categoryLabel, constraints);
+
+                                constraints.gridx = 1;
+                                createNewsFrame.add(categoryBox, constraints);
+
+                                constraints.gridx = 0;
+                                constraints.gridy = 3;
+                                createNewsFrame.add(premiumLabel, constraints);
+
+                                constraints.gridx = 1;
+                                createNewsFrame.add(premiumCheckBox, constraints);
+
+                                constraints.gridx = 0;
+                                constraints.gridy = 4;
+                                constraints.gridwidth = 2;
+                                createNewsFrame.add(confirmButton, constraints);
+
+                                createNewsFrame.setVisible(true);
+
                                 confirmButton.addActionListener(new ActionListener() {
                                     @Override
                                     public void actionPerformed(ActionEvent e) {
@@ -287,11 +381,9 @@ public class Main {
                                         }
                                     }
                                 });
-
-                                createNewsFrame.add(confirmButton);
-                                createNewsFrame.setVisible(true);
                             }
                         });
+                    
 
                         // Agregar un botón para editar noticias solo para usuarios con isEditor activo
                         JButton editNewsButton = new JButton("Editar Noticia");
@@ -444,9 +536,11 @@ public class Main {
 
                     	// Crear una etiqueta con el texto deseado
                     	JLabel seleccionarUsuarioLabel = new JLabel("Selecciona el usuario a eliminar");
-                    	seleccionarUsuarioLabel.setBounds(1000, 325, 200, 30); // Asegúrate de ajustar las coordenadas y tamaño según tu necesidad
+                    	seleccionarUsuarioLabel.setBounds(1000, 325, 200, 30); // Ajusta las coordenadas y tamaño según tus necesidades
+                    	seleccionarUsuarioLabel.setForeground(Color.WHITE);
+                    	seleccionarUsuarioLabel.setFont(seleccionarUsuarioLabel.getFont().deriveFont(Font.BOLD));
                     	userWindow.add(seleccionarUsuarioLabel);
-
+                    	
                     	// Crear un JComboBox para mostrar todos los usuarios
                     	List<String> listaUsuarios = Usuario.obtenerTodosLosUsuarios();
                     	JComboBox<String> listaUsuariosComboBox = new JComboBox<>(listaUsuarios.toArray(new String[0]));
@@ -593,17 +687,22 @@ public class Main {
                     }
                     
 
-                    // Agregar un panel para mostrar las noticias
+                 // Agregar un panel para mostrar las noticias
                     JPanel newsPanel = new JPanel();
                     newsPanel.setLayout(new BoxLayout(newsPanel, BoxLayout.Y_AXIS));
-                    JScrollPane scrollPane = new JScrollPane();
-                    scrollPane.setViewportView(newsPanel);
+                    newsPanel.setPreferredSize(new Dimension(900, 600)); // Establecer el tamaño preferido del panel de noticias
+
+                    JScrollPane scrollPane = new JScrollPane(newsPanel);
                     scrollPane.setBounds(50, 200, 900, 450);
                     userWindow.add(scrollPane);
 
                     // Obtener y mostrar las noticias
                     Noticia.actualizarNoticias(userWindow);
+                    backgroundLabel.add(sucripciones);
+                    backgroundLabel.setLayout(null);
 
+                    // Añadir el JLabel con la imagen de fondo a la ventana
+                    userWindow.add(backgroundLabel);
                     userWindow.setLayout(null);
                     userWindow.setVisible(true);
                 } catch (Exception ex) {
