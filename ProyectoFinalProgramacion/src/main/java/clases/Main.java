@@ -63,10 +63,29 @@ public class Main {
             e.printStackTrace();
         }
 
-        // Botón para iniciar sesión
         JButton loginButton = new JButton("Iniciar Sesión");
         loginButton.setBounds(100, 700, 200, 50);
         panel.add(loginButton);
+
+        Color[] colors = {Color.RED,  Color.ORANGE, Color.GREEN};
+        final int[] currentColorIndex = {0};
+
+        loginButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                // Cambiamos el color del botón cuando el mouse pasa por encima
+                loginButton.setBackground(colors[currentColorIndex[0]]);
+                currentColorIndex[0] = (currentColorIndex[0] + 1) % colors.length;
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                // Restauramos el color original del botón cuando el mouse deja de pasar por encima
+                loginButton.setBackground(UIManager.getColor("Button.background"));
+            }
+        });
+
+
         loginButton.addActionListener(e -> {
             // Creamos e iniciamos un nuevo JFrame para el inicio de sesión
             JFrame loginFrame = new JFrame("Inicio de Sesión");
@@ -88,13 +107,24 @@ public class Main {
             passwordField.setBounds(50, 100, 200, 30);
             loginFrame.add(passwordField);
 
-            // Botón de inicio de sesión en la nueva ventana
             JButton loginConfirmButton = new JButton("Iniciar Sesión");
             loginConfirmButton.setBounds(50, 150, 200, 30);
+
             loginConfirmButton.addActionListener(e1 -> {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
+                try {
+                    String soundFilePath = "iniciarsesion.wav";
+                    File soundFile = new File(soundFilePath);
+
+                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInputStream);
+                    clip.start();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 // Crear una nueva instancia de Usuario
                 Usuario usuario = new Usuario(username, username, password, false, false);
                 
@@ -172,7 +202,7 @@ public class Main {
                         public void actionPerformed(ActionEvent e) {
                             // Cargar y reproducir el sonido de dinero
                             try {
-                                String soundFilePath = "cash-register-purchase-87313.wav";
+                                String soundFilePath = "aplausos.wav";
                                 AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));
                                 Clip clip = AudioSystem.getClip();
                                 clip.open(audioInputStream);
@@ -199,53 +229,57 @@ public class Main {
                             }
                             
 
-                            JButton aceptarButton = new JButton("Aceptar");
-                            aceptarButton.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
-                                    float precioPorMes = 10.0f; // Precio predefinido
-                                    // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
-                                    Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
 
-                                    // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
-                                    LocalDate fechaInicio = LocalDate.now();
-                                    LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+JButton aceptarButton = new JButton("Aceptar");
+aceptarButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
+        float precioPorMes = 10.0f; // Precio predefinido
+        // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
+        Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
 
-                                    // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
-                                 // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
-                                    Categoria categorias = (Categoria) categoriaBox.getSelectedItem();
+        // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
+        LocalDate fechaInicio = LocalDate.now();
+        LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
 
-                                    // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
-                                    LocalDate fechaInicioB = LocalDate.now();
-                                    LocalDate fechaFinB = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+        // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
+        // Deberías tener un método o variable que te dé este valor.
+        int usuario_id = 1;
+        try {
+            usuario_id = Usuario.getIdPorNombreUsuario(username);
+        } catch (ConexionFallidaException e1) {
+            e1.printStackTrace();
+        }
 
-                                    // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
-                                    // Deberías tener un método o variable que te dé este valor.
-                                    int usuario_id = 1;
-									try {
-										usuario_id = Usuario.getIdPorNombreUsuario(username);
-									} catch (ConexionFallidaException e1) {
-										// TODO Auto-generated catch block
-										e1.printStackTrace();
-									}
+        // Crea un objeto Suscripcion con estos datos
+        Suscripcion suscripcion = new Suscripcion(tipoSuscripcion, precioPorMes, categoria, fechaInicio, fechaFin);
 
-                                    // Crea un objeto Suscripcion con estos datos
-                                    Suscripcion suscripcion = new Suscripcion(tipoSuscripcion, precioPorMes, categoria, fechaInicio, fechaFin);
+        // Llama al método para insertar la suscripción en la base de datos
+        Suscripcion.insertarSuscripcion(suscripcion, usuario_id);
 
-                                    // Llama al método para insertar la suscripción en la base de datos
-                                    Suscripcion.insertarSuscripcion(suscripcion, usuario_id);
+        try {
+            String soundFilePath = "cash-register-purchase-87313.wav";
+            File soundFile = new File(soundFilePath);
 
-                                    JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
-                                    suscripcionWindow.dispose();
-                                }
-                            });
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-                            suscripcionWindow.setLayout(new FlowLayout());
-                            suscripcionWindow.add(suscripcionBox);
-                            suscripcionWindow.add(categoriaBox);
-                            suscripcionWindow.add(aceptarButton);
-                            suscripcionWindow.setVisible(true);
+        JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
+        suscripcionWindow.dispose();
+    }
+});
+
+suscripcionWindow.setLayout(new FlowLayout());
+suscripcionWindow.add(suscripcionBox);
+suscripcionWindow.add(categoriaBox);
+suscripcionWindow.add(aceptarButton);
+suscripcionWindow.setVisible(true);
                         }
                     });
 
@@ -716,10 +750,27 @@ public class Main {
             loginFrame.setVisible(true);
         });
 
-        // Botón para registrarse
         JButton registerButton = new JButton("Registrate");
         registerButton.setBounds(500, 700, 200, 50);
         panel.add(registerButton);
+
+        Color[] colores = {Color.RED, Color.BLUE, Color.BLACK, Color.WHITE};
+        final int[] currentColoreIndex = {0};
+
+        registerButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                // Cambiamos el color del botón cuando el mouse pasa por encima
+                registerButton.setBackground(colors[currentColorIndex[0]]);
+                currentColorIndex[0] = (currentColorIndex[0] + 1) % colors.length;
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                // Restauramos el color original del botón cuando el mouse deja de pasar por encima
+                registerButton.setBackground(UIManager.getColor("Button.background"));
+            }
+        });
         registerButton.addActionListener(e -> {
             JFrame registerFrame = new JFrame("Registro");
             registerFrame.setSize(300, 300);
