@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.time.LocalDate;
 import clases.Suscripcion;
 
@@ -90,7 +92,7 @@ public class Main {
             // Creamos e iniciamos un nuevo JFrame para el inicio de sesión
             JFrame loginFrame = new JFrame("Inicio de Sesión");
 
-            // Campos de texto para el nombre de usuario y la contraseña
+         // Campos de texto para el nombre de usuario y la contraseña
             JLabel usernameLabel = new JLabel("Nombre de usuario");
             usernameLabel.setBounds(50, 20, 200, 30);
             loginFrame.add(usernameLabel);
@@ -113,7 +115,11 @@ public class Main {
             loginConfirmButton.addActionListener(e1 -> {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
-
+                // Verificar que los campos no estén vacíos
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Por favor, rellene todos los campos");
+                    return;
+                }
                 try {
                     String soundFilePath = "iniciarsesion.wav";
                     File soundFile = new File(soundFilePath);
@@ -800,7 +806,19 @@ suscripcionWindow.setVisible(true);
             registerConfirmButton.addActionListener(e1 -> {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
+                // Verificar que los campos no estén vacíos
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Por favor, rellene todos los campos");
+                    return;
+                }
 
+                // Verificar que la contraseña contenga al menos una letra mayúscula, un número o un carácter especial
+                Pattern pattern = Pattern.compile("^(?=.*[A-Z])(?=.*[0-9])(?=.*[.,]).+$");
+                Matcher matcher = pattern.matcher(password);
+                if (!matcher.find()) {
+                    JOptionPane.showMessageDialog(null, "La contraseña debe contener al menos una letra mayúscula, un número o un carácter especial como punto o coma");
+                    return;
+                }
                 // Aquí llamamos al método de registro
                 try {
                     Usuario.registrar_usuario(username, password);
