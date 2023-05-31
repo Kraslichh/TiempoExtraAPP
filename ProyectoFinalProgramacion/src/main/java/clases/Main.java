@@ -52,6 +52,7 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.JOptionPane;
 
 
+
 public class Main {
     public static void main(String[] args) throws RegistroException {
     	JFrame frame = new JFrame("TiempoExtra inicio de sesión");
@@ -252,7 +253,7 @@ public class Main {
                                     
                                     // Crear botones
                                     JButton buttonEditar = new JButton("Editar Suscripción");
-                                    JButton buttonEliminar = new JButton("Eliminar Suscripción");
+                                    JButton buttonEliminar = new JButton("Cancelar Suscripción");
 
                                     // Configurar las acciones de los botones
                                     buttonEditar.addActionListener(new ActionListener() {
@@ -290,8 +291,28 @@ public class Main {
                                             // Eliminar la suscripción
                                             Suscripcion.eliminarSuscripcion(usuarioId);
 
-                                            // Mostrar un mensaje al usuario
-                                            JOptionPane.showMessageDialog(null, "Suscripción eliminada. Cierra la sesión para ver los cambios.");
+                                            // Crear un JDialog
+                                            JDialog dialog = new JDialog();
+                                            dialog.setSize(400, 200);  // Establecer el ancho y la altura de la ventana emergente.
+                                            dialog.setLocationRelativeTo(null);  // Centra la ventana emergente en el medio de la pantalla.
+
+                                            JLabel label = new JLabel("Suscripción Cancelada. Cierra la sesión para ver los cambios.", SwingConstants.CENTER);
+                                            dialog.getContentPane().add(label);
+
+                                            // Configurar el temporizador para cerrar el diálogo después de 3 segundos
+                                            javax.swing.Timer timer = new javax.swing.Timer(3000, new ActionListener() {
+                                                @Override
+                                                public void actionPerformed(ActionEvent e) {
+                                                    dialog.dispose();
+                                                    suscripcionWindow.dispose();  // Cierra la ventana principal.
+                                                }
+                                            });
+                                            timer.setRepeats(false);
+                                            timer.start();
+
+                                            dialog.setVisible(true);  // Mostrar la ventana emergente.
+
+                                            // Reproducir sonido
                                             try {
                                                 String soundFilePath = "sad.wav";
                                                 AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));

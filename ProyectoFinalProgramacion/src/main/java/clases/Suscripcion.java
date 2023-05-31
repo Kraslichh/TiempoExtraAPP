@@ -241,7 +241,7 @@ public static void eliminarSuscripcion(int usuarioId) {
         int rowsAffected = statement.executeUpdate();
 
         if (rowsAffected > 0) {
-            JOptionPane.showMessageDialog(null, "La suscripción se eliminó con éxito");
+            //JOptionPane.showMessageDialog(null, "La suscripción se eliminó con éxito");
         } else {
             JOptionPane.showMessageDialog(null, "Error al eliminar la suscripción");
         }
