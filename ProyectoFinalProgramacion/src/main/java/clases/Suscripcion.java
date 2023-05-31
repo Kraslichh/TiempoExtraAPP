@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import conector.DatabaseConnector;
 
 public class Suscripcion extends ElementoConNombre {
@@ -123,7 +125,7 @@ public class Suscripcion extends ElementoConNombre {
     }
     
     
-public String obtenerCategoriaSuscripcion(int userId) {
+public static String obtenerCategoriaSuscripcion(int userId) {
     String categoria = null;
     String sql = "SELECT categoria, fechaInicio, fechaFin FROM suscripcion WHERE usuario_id = ?";
 
@@ -153,7 +155,49 @@ public String obtenerCategoriaSuscripcion(int userId) {
 
     return categoria;
 }
+public static LocalDate obtenerFechaInicioSuscripcion(int usuarioId) {
+    try (Connection connection = DatabaseConnector.getConnection()) {
+        String sql = "SELECT fechaInicio FROM suscripcion WHERE usuario_id = ?";
 
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, usuarioId);
+
+        ResultSet resultSet = statement.executeQuery();
+
+        if (resultSet.next()) {
+            Date fechaInicio = resultSet.getDate("fechaInicio");
+            return fechaInicio.toLocalDate();
+        }
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(null, "Error en la base de datos: " + ex.getMessage());
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(null, "Error al obtener la fecha de inicio de la suscripción: " + ex.getMessage());
+    }
+
+    return null;
+}
+
+public static LocalDate obtenerFechaFinSuscripcion(int usuarioId) {
+    try (Connection connection = DatabaseConnector.getConnection()) {
+        String sql = "SELECT fechaFin FROM suscripcion WHERE usuario_id = ?";
+
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, usuarioId);
+
+        ResultSet resultSet = statement.executeQuery();
+
+        if (resultSet.next()) {
+            Date fechaFin = resultSet.getDate("fechaFin");
+            return fechaFin.toLocalDate();
+        }
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(null, "Error en la base de datos: " + ex.getMessage());
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(null, "Error al obtener la fecha de fin de la suscripción: " + ex.getMessage());
+    }
+
+    return null;
+}
 
 
 

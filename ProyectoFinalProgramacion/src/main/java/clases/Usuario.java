@@ -31,6 +31,7 @@ public class Usuario extends ElementoConNombre {
     private static int idUsuarioActual;
     private boolean premium;
     private int id;
+    
 
     // Constructores
     public Usuario(String nombre, String nombreUsuario, String contraseña, boolean isEditor, boolean isAdmin) {
@@ -41,6 +42,8 @@ public class Usuario extends ElementoConNombre {
         this.isAdmin = isAdmin;
         this.suscripcionesActivas = new HashSet<>();
         this.noticiasCreadas = new ArrayList<>();
+        this.premium = false; // Valor inicial de premium
+        this.id = -1; // Valor inicial de id
     }
 
     // Getters y Setters
@@ -49,7 +52,21 @@ public class Usuario extends ElementoConNombre {
         return nombreUsuario;
     }
 
-    public void setNombreUsuario(String nombreUsuario) {
+    
+    
+    public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public void setSuscripcionesActivas(HashSet<Suscripcion> suscripcionesActivas) {
+		this.suscripcionesActivas = suscripcionesActivas;
+	}
+
+	public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
     }
 
@@ -96,6 +113,10 @@ public class Usuario extends ElementoConNombre {
     public static void establecerUsuarioActual(Usuario usuario) {
         usuarioActual = usuario;
     }
+    public boolean getPremium() {
+        return premium;
+    }
+
     
     public boolean isPremium() {
         try {
@@ -103,9 +124,9 @@ public class Usuario extends ElementoConNombre {
             Connection connection = DatabaseConnector.getConnection();
 
             // Preparar la consulta SQL
-            String query = "SELECT * FROM suscripcion WHERE usuario_id = ?";
+            String query = "SELECT * FROM suscripcion s JOIN usuario u ON s.usuario_id = u.id WHERE u.id = ?";
             PreparedStatement stmt = connection.prepareStatement(query);
-            stmt.setInt(1, this.id);
+            stmt.setInt(1, this.getId()); // Utiliza this.getId() en lugar de this.id
 
             // Ejecutar la consulta
             ResultSet resultSet = stmt.executeQuery();
@@ -113,7 +134,7 @@ public class Usuario extends ElementoConNombre {
             // Comprobar si el usuario tiene una suscripción activa
             if (resultSet.next()) {
                 // Si la suscripción existe, comprobar si sigue vigente
-                Timestamp fechaFin = resultSet.getTimestamp("fecha_fin");
+                Timestamp fechaFin = resultSet.getTimestamp("fechaFin");
                 return fechaFin.toInstant().isAfter(Instant.now());
             }
 

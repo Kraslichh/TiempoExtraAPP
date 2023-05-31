@@ -13,6 +13,7 @@ import com.toedter.calendar.JCalendar;
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
 import excepciones.ConexionFallidaException;
+import excepciones.RegistroException;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -52,7 +53,7 @@ import javax.swing.JOptionPane;
 
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws RegistroException {
     	JFrame frame = new JFrame("TiempoExtra inicio de sesión");
     	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frame.setLayout(new GridLayout(1, 1)); // Configura el administrador de diseño GridLayout con 1 fila y 1 columna
@@ -153,6 +154,8 @@ public class Main {
                 // Intentar iniciar sesión
                 try {
                     usuario.iniciar_sesion(username, password);
+                    int usuarioId = Usuario.getIdPorNombreUsuario(username);
+                    usuario.setId(usuarioId);
 
                     // Si la línea anterior no lanza una excepción, la autenticación fue exitosa
                     loginFrame.dispose(); // Cerrar la ventana de inicio de sesión
@@ -214,97 +217,134 @@ public class Main {
                     backgroundLabel.add(subtitleLabel);
 
                     
-                 // Agregar un botón para actualizar la sesión
-                    JButton sucripciones = new JButton("Obten tu premium");
-                    sucripciones.setBounds(50, 670, 180, 30);
+                 // Verificar si el usuario tiene una suscripción activa
+                    boolean tieneSuscripcion = usuario.isPremium();
 
-                    sucripciones.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            // Cargar y reproducir el sonido de dinero
-                            try {
-                                String soundFilePath = "aplausos.wav";
-                                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));
-                                Clip clip = AudioSystem.getClip();
-                                clip.open(audioInputStream);
-                                clip.start();
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
+                    if (tieneSuscripcion) {
+                        // Crear el botón PREMIUM
+                        JButton premiumButton = new JButton("PREMIUM");
+                        premiumButton.setBounds(50, 670, 180, 30);
+                        premiumButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Obtener la información de la suscripción premium del usuario
+                                int usuarioId;
+                                try {
+                                    usuarioId = Usuario.getIdPorNombreUsuario(username);
+                                    String categoria = Suscripcion.obtenerCategoriaSuscripcion(usuarioId);
+                                    LocalDate fechaInicio = Suscripcion.obtenerFechaInicioSuscripcion(usuarioId);
+                                    LocalDate fechaFin = Suscripcion.obtenerFechaFinSuscripcion(usuarioId);
+
+                                    // Mostrar la información de la suscripción premium en una ventana emergente
+                                    JFrame suscripcionWindow = new JFrame("Información de Suscripción Premium");
+                                    suscripcionWindow.setSize(400, 300);
+
+                                    JPanel panel = new JPanel();
+                                    suscripcionWindow.add(panel);
+
+                                    JLabel categoriaLabel = new JLabel("Categoría: " + categoria);
+                                    JLabel fechaInicioLabel = new JLabel("Fecha de inicio: " + fechaInicio);
+                                    JLabel fechaFinLabel = new JLabel("Fecha de fin: " + fechaFin);
+
+                                    panel.add(categoriaLabel);
+                                    panel.add(fechaInicioLabel);
+                                    panel.add(fechaFinLabel);
+
+                                    suscripcionWindow.setVisible(true);
+                                } catch (Exception ex) {
+                                    JOptionPane.showMessageDialog(null, "Error al obtener la información de la suscripción premium: " + ex.getMessage());
+                                }
                             }
+                        });
+                        userWindow.add(premiumButton);
+                    } else {
+                        // Crear el botón "Obten tu premium"
+                        JButton sucripciones = new JButton("Obten tu premium");
+                        sucripciones.setBounds(50, 670, 180, 30);
+                        sucripciones.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Código para obtener la suscripción premium
+                                try {
+                                    String soundFilePath = "aplausos.wav";
+                                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));
+                                    Clip clip = AudioSystem.getClip();
+                                    clip.open(audioInputStream);
+                                    clip.start();
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
 
-                            // Creando una ventana emergente.
-                            JFrame suscripcionWindow = new JFrame("Elige tu suscripción");
-                            suscripcionWindow.setSize(400, 300);
+                                // Creando una ventana emergente.
+                                JFrame suscripcionWindow = new JFrame("Elige tu suscripción");
+                                suscripcionWindow.setSize(400, 300);
 
-                            // Agregando componentes a suscripcionWindow para permitir al usuario seleccionar una suscripción.
-                            JComboBox suscripcionBox = new JComboBox();
-                            JComboBox categoriaBox = new JComboBox();
+                                // Agregando componentes a suscripcionWindow para permitir al usuario seleccionar una suscripción.
+                                JComboBox<String> suscripcionBox = new JComboBox<>();
+                                JComboBox<Categoria> categoriaBox = new JComboBox<>(Categoria.values());
 
-                            // Añadiendo las opciones de suscripción a suscripcionBox.
-                            suscripcionBox.addItem("Suscripción Mensual");
-                            suscripcionBox.addItem("Suscripción Anual");
+                                // Añadiendo las opciones de suscripción a suscripcionBox.
+                                suscripcionBox.addItem("Suscripción Mensual");
+                                suscripcionBox.addItem("Suscripción Anual");
 
-                            // Agrega las categorias al box de categorías
-                            for(Categoria cat : Categoria.values()) {
-                                categoriaBox.addItem(cat);
+                                JButton aceptarButton = new JButton("Aceptar");
+                                aceptarButton.addActionListener(new ActionListener() {
+                                    @Override
+                                    public void actionPerformed(ActionEvent e) {
+                                        String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
+                                        float precioPorMes = 10.0f; // Precio predefinido
+                                        Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
+
+                                        LocalDate fechaInicio = LocalDate.now();
+                                        LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+
+                                        int usuarioId = 1; // Deberías obtener el ID del usuario actual
+                                        try {
+                                            usuarioId = Usuario.getIdPorNombreUsuario(username);
+                                        } catch (Exception ex) {
+                                            JOptionPane.showMessageDialog(null, "Error al obtener el ID del usuario: " + ex.getMessage());
+                                        }
+
+                                        Suscripcion suscripcion = new Suscripcion(tipoSuscripcion, precioPorMes, categoria, fechaInicio, fechaFin);
+
+                                        Suscripcion.insertarSuscripcion(suscripcion, usuarioId);
+
+                                        try {
+                                            String soundFilePath = "cash-register-purchase-87313.wav";
+                                            File soundFile = new File(soundFilePath);
+
+                                            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+                                            Clip clip = AudioSystem.getClip();
+                                            clip.open(audioInputStream);
+                                            clip.start();
+                                        } catch (Exception ex) {
+                                            ex.printStackTrace();
+                                        }
+
+                                        JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
+                                        suscripcionWindow.dispose();
+                                    }
+                                });
+
+                                suscripcionWindow.setLayout(new FlowLayout());
+                                suscripcionWindow.add(suscripcionBox);
+                                suscripcionWindow.add(categoriaBox);
+                                suscripcionWindow.add(aceptarButton);
+                                suscripcionWindow.setVisible(true);
                             }
-                            
-
-
-JButton aceptarButton = new JButton("Aceptar");
-aceptarButton.addActionListener(new ActionListener() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
-        float precioPorMes = 10.0f; // Precio predefinido
-        // Supongamos que tienes un JComboBox para que el usuario seleccione la categoría.
-        Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
-
-        // Obtenemos las fechas de inicio y fin dependiendo del tipo de suscripción.
-        LocalDate fechaInicio = LocalDate.now();
-        LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
-
-        // Asume que usuario_id es el ID del usuario que está en la sesión actualmente.
-        // Deberías tener un método o variable que te dé este valor.
-        int usuario_id = 1;
-        try {
-            usuario_id = Usuario.getIdPorNombreUsuario(username);
-        } catch (ConexionFallidaException e1) {
-            e1.printStackTrace();
-        }
-
-        // Crea un objeto Suscripcion con estos datos
-        Suscripcion suscripcion = new Suscripcion(tipoSuscripcion, precioPorMes, categoria, fechaInicio, fechaFin);
-
-        // Llama al método para insertar la suscripción en la base de datos
-        Suscripcion.insertarSuscripcion(suscripcion, usuario_id);
-
-        try {
-            String soundFilePath = "cash-register-purchase-87313.wav";
-            File soundFile = new File(soundFilePath);
-
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
-        suscripcionWindow.dispose();
-    }
-});
-
-suscripcionWindow.setLayout(new FlowLayout());
-suscripcionWindow.add(suscripcionBox);
-suscripcionWindow.add(categoriaBox);
-suscripcionWindow.add(aceptarButton);
-suscripcionWindow.setVisible(true);
-                        }
-                    });
-
-                    userWindow.add(sucripciones);
+                        });
+                        userWindow.add(sucripciones);
+                    }
+                    
+                    
+                    // Realizar una verificación si el usuario es premium
+                    if (usuario.isPremium()) {
+                        // Lógica para usuarios premium
+                        System.out.println("El usuario es premium.");
+                    } else {
+                        // Lógica para usuarios no premium
+                        System.out.println("El usuario no es premium.");
+                    }
 
                     // Agregar un botón para actualizar la sesión
                     JButton refreshButton = new JButton("Actualizar");
@@ -807,7 +847,7 @@ suscripcionWindow.setVisible(true);
 
                     // Obtener y mostrar las noticias
                     Noticia.actualizarNoticias(userWindow);
-                    backgroundLabel.add(sucripciones);
+                    //backgroundLabel.add(sucripciones);
                     backgroundLabel.setLayout(null);
 
                     // Añadir el JLabel con la imagen de fondo a la ventana
@@ -893,8 +933,10 @@ suscripcionWindow.setVisible(true);
                     Usuario.registrar_usuario(username, password);
                     JOptionPane.showMessageDialog(null, "Usuario registrado correctamente");
                     registerFrame.dispose(); // Cerrar la ventana de registro
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Error en el registro: " + ex.getMessage());
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Error en la base de datos: " + ex.getMessage());
+                } catch (ConexionFallidaException ex) {
+                    JOptionPane.showMessageDialog(null, "Error en la conexión: " + ex.getMessage());
                 }
             });
             registerFrame.add(registerConfirmButton);
