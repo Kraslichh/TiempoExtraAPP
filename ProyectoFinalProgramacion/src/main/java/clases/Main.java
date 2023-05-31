@@ -390,94 +390,105 @@ public class Main {
 
                     // Agregar un botón para crear noticias solo para usuarios con isEditor activo
                     if (usuario.isEditor()) {
-                        JButton createNewsButton = new JButton("Crear Noticia");
-                        createNewsButton.setBounds(1000, 300, 150, 30);
-                        userWindow.add(createNewsButton);
+                    	// Agregar un botón para crear noticias solo para usuarios con isEditor activo
+                    	if (usuario.isEditor()) {
+                    	    JButton createNewsButton = new JButton("Crear Noticia");
+                    	    createNewsButton.setBounds(1000, 300, 150, 30);
+                    	    userWindow.add(createNewsButton);
 
-                        createNewsButton.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                // Abrir una nueva ventana para introducir los detalles de la noticia
-                                JFrame createNewsFrame = new JFrame("Crear Noticia");
-                                createNewsFrame.setSize(500, 500);
-                                createNewsFrame.setLayout(new GridBagLayout());
+                    	    createNewsButton.addActionListener(new ActionListener() {
+                    	        @Override
+                    	        public void actionPerformed(ActionEvent e) {
+                    	            // Abrir una nueva ventana para introducir los detalles de la noticia
+                    	            JFrame createNewsFrame = new JFrame("Crear Noticia");
+                    	            createNewsFrame.setSize(500, 500);
+                    	            createNewsFrame.setLayout(new GridBagLayout());
 
-                                GridBagConstraints constraints = new GridBagConstraints();
-                                constraints.fill = GridBagConstraints.HORIZONTAL;
+                    	            GridBagConstraints constraints = new GridBagConstraints();
+                    	            constraints.fill = GridBagConstraints.HORIZONTAL;
 
-                                // Etiquetas descriptivas
-                                JLabel titleLabel = new JLabel("Título:");
-                                JLabel contentLabel = new JLabel("Contenido:");
-                                JLabel categoryLabel = new JLabel("Categoría:");
-                                JLabel premiumLabel = new JLabel("Noticia Premium:");
+                    	            // Etiquetas descriptivas
+                    	            JLabel titleLabel = new JLabel("Título:");
+                    	            JLabel contentLabel = new JLabel("Contenido:");
+                    	            JLabel categoryLabel = new JLabel("Categoría:");
+                    	            JLabel premiumLabel = new JLabel("Noticia Premium:");
 
-                                // Campos de texto para los detalles de la noticia
-                                JTextField titleField = new JTextField(20);
-                                JTextArea contentArea = new JTextArea(5, 20);
-                                JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
-                                JCheckBox premiumCheckBox = new JCheckBox();
+                    	            // Campos de texto para los detalles de la noticia
+                    	            JTextField titleField = new JTextField(20);
+                    	            JTextArea contentArea = new JTextArea(5, 20);
+                    	            contentArea.setLineWrap(true);
+                    	            contentArea.setWrapStyleWord(true);
+                    	            JScrollPane contentScrollPane = new JScrollPane(contentArea);
+                    	            JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
+                    	            JCheckBox premiumCheckBox = new JCheckBox();
 
-                                // Botón para confirmar la creación de la noticia
-                                JButton confirmButton = new JButton("Crear Noticia");
+                    	            // Botón para confirmar la creación de la noticia
+                    	            JButton confirmButton = new JButton("Crear Noticia");
 
-                                // Configuración de los componentes y su colocación en la ventana
-                                constraints.gridx = 0;
-                                constraints.gridy = 0;
-                                createNewsFrame.add(titleLabel, constraints);
+                    	            // Configuración de los componentes y su colocación en la ventana
+                    	            constraints.gridx = 0;
+                    	            constraints.gridy = 0;
+                    	            createNewsFrame.add(titleLabel, constraints);
 
-                                constraints.gridx = 1;
-                                createNewsFrame.add(titleField, constraints);
+                    	            constraints.gridx = 1;
+                    	            createNewsFrame.add(titleField, constraints);
 
-                                constraints.gridx = 0;
-                                constraints.gridy = 1;
-                                createNewsFrame.add(contentLabel, constraints);
+                    	            constraints.gridx = 0;
+                    	            constraints.gridy = 1;
+                    	            createNewsFrame.add(contentLabel, constraints);
 
-                                constraints.gridx = 1;
-                                createNewsFrame.add(contentArea, constraints);
+                    	            constraints.gridx = 1;
+                    	            constraints.gridy = 1;
+                    	            constraints.gridwidth = 2;
+                    	            constraints.fill = GridBagConstraints.BOTH;
+                    	            createNewsFrame.add(contentScrollPane, constraints);
 
-                                constraints.gridx = 0;
-                                constraints.gridy = 2;
-                                createNewsFrame.add(categoryLabel, constraints);
+                    	            constraints.gridx = 0;
+                    	            constraints.gridy = 2;
+                    	            constraints.gridwidth = 1;
+                    	            createNewsFrame.add(categoryLabel, constraints);
 
-                                constraints.gridx = 1;
-                                createNewsFrame.add(categoryBox, constraints);
+                    	            constraints.gridx = 1;
+                    	            createNewsFrame.add(categoryBox, constraints);
 
-                                constraints.gridx = 0;
-                                constraints.gridy = 3;
-                                createNewsFrame.add(premiumLabel, constraints);
+                    	            constraints.gridx = 0;
+                    	            constraints.gridy = 3;
+                    	            createNewsFrame.add(premiumLabel, constraints);
 
-                                constraints.gridx = 1;
-                                createNewsFrame.add(premiumCheckBox, constraints);
+                    	            constraints.gridx = 1;
+                    	            createNewsFrame.add(premiumCheckBox, constraints);
 
-                                constraints.gridx = 0;
-                                constraints.gridy = 4;
-                                constraints.gridwidth = 2;
-                                createNewsFrame.add(confirmButton, constraints);
+                    	            constraints.gridx = 0;
+                    	            constraints.gridy = 4;
+                    	            constraints.gridwidth = 2;
+                    	            createNewsFrame.add(confirmButton, constraints);
 
-                                createNewsFrame.setVisible(true);
+                    	            createNewsFrame.setVisible(true);
 
-                                confirmButton.addActionListener(new ActionListener() {
-                                    @Override
-                                    public void actionPerformed(ActionEvent e) {
-                                        // Llamar al método crear_noticia() con los valores introducidos
-                                        try {
-                                            Noticia.crear_noticia(
-                                                    titleField.getText(),
-                                                    contentArea.getText(),
-                                                    LocalDateTime.now(),
-                                                    usuario,
-                                                    (Categoria) categoryBox.getSelectedItem(),
-                                                    premiumCheckBox.isSelected()
-                                            );
-                                            JOptionPane.showMessageDialog(createNewsFrame, "Noticia creada exitosamente");
-                                            createNewsFrame.dispose(); // Cerrar la ventana de creación de noticia
-                                        } catch (Exception ex) {
-                                            JOptionPane.showMessageDialog(createNewsFrame, "Error al crear noticia: " + ex.getMessage());
-                                        }
-                                    }
-                                });
-                            }
-                        });
+                    	            confirmButton.addActionListener(new ActionListener() {
+                    	                @Override
+                    	                public void actionPerformed(ActionEvent e) {
+                    	                    // Llamar al método crear_noticia() con los valores introducidos
+                    	                    try {
+                    	                        Noticia.crear_noticia(
+                    	                                titleField.getText(),
+                    	                                contentArea.getText(),
+                    	                                LocalDateTime.now(),
+                    	                                usuario,
+                    	                                (Categoria) categoryBox.getSelectedItem(),
+                    	                                premiumCheckBox.isSelected()
+                    	                        );
+                    	                        JOptionPane.showMessageDialog(createNewsFrame, "Noticia creada exitosamente");
+                    	                        createNewsFrame.dispose(); // Cerrar la ventana de creación de noticia
+                    	                    } catch (Exception ex) {
+                    	                        JOptionPane.showMessageDialog(createNewsFrame, "Error al crear noticia: " + ex.getMessage());
+                    	                    }
+                    	                }
+                    	            });
+                    	        }
+                    	    });
+                    	}
+
                     
 
                         // Agregar un botón para editar noticias solo para usuarios con isEditor activo
@@ -503,15 +514,15 @@ public class Main {
                                     return;
                                 }
 
-                                // Crear un diálogo para seleccionar la noticia a editar
+                             // Crear un diálogo para seleccionar la noticia a editar
                                 Object selectedNews = JOptionPane.showInputDialog(
-                                        userWindow,
-                                        "Selecciona la noticia a editar:",
-                                        "Editar Noticia",
-                                        JOptionPane.QUESTION_MESSAGE,
-                                        null,
-                                        noticias.toArray(),
-                                        noticias.get(0));
+                                    userWindow,
+                                    "Selecciona la noticia a editar:",
+                                    "Editar Noticia",
+                                    JOptionPane.QUESTION_MESSAGE,
+                                    null,
+                                    noticias.toArray(),
+                                    noticias.get(0));
 
                                 // Verificar si se seleccionó una noticia
                                 if (selectedNews == null) {
@@ -522,29 +533,65 @@ public class Main {
                                 if (selectedNews instanceof Noticia) {
                                     Noticia noticiaSeleccionada = (Noticia) selectedNews;
 
-                                    // Abrir una nueva ventana para editar la noticia seleccionada
+                                 // Crear una ventana para editar la noticia seleccionada
                                     JFrame editNewsFrame = new JFrame("Editar Noticia");
                                     editNewsFrame.setSize(500, 500);
-                                    editNewsFrame.setLayout(new FlowLayout());
+                                    editNewsFrame.setLayout(new GridBagLayout());
 
-                                    // Campos de texto para los detalles de la noticia
+                                    GridBagConstraints constraints = new GridBagConstraints();
+                                    constraints.anchor = GridBagConstraints.WEST;
+                                    constraints.insets = new Insets(5, 5, 5, 5);
+
+                                    // Campo de texto para el título de la noticia
                                     JTextField titleField = new JTextField(noticiaSeleccionada.getNombre(), 20);
+                                    constraints.gridx = 0;
+                                    constraints.gridy = 0;
+                                    editNewsFrame.add(new JLabel("Título:"), constraints);
+                                    constraints.gridx = 1;
+                                    constraints.gridy = 0;
+                                    editNewsFrame.add(titleField, constraints);
+
+                                    // Etiqueta y campo de texto para el contenido de la noticia
+                                    JLabel contentLabel = new JLabel("Contenido:");
+                                    constraints.gridx = 0;
+                                    constraints.gridy = 1;
+                                    editNewsFrame.add(contentLabel, constraints);
+                                    constraints.gridx = 1;
+                                    constraints.gridy = 1;
+                                    constraints.gridwidth = 1;
+                                    constraints.fill = GridBagConstraints.BOTH;
                                     JTextArea contentArea = new JTextArea(noticiaSeleccionada.getContenido(), 5, 20);
+                                    contentArea.setLineWrap(true); // Habilitar el ajuste automático de línea
+                                    JScrollPane scrollPane = new JScrollPane(contentArea);
+                                    editNewsFrame.add(scrollPane, constraints);
+
+                                    // Cuadro de selección para la categoría de la noticia
                                     JComboBox<Categoria> categoryBox = new JComboBox<>(Categoria.values());
                                     categoryBox.setSelectedItem(noticiaSeleccionada.getCategoria());
-                                    JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium", noticiaSeleccionada.isNoticiaPremium());
+                                    constraints.gridx = 0;
+                                    constraints.gridy = 3;
+                                    constraints.gridwidth = 1;
+                                    constraints.fill = GridBagConstraints.NONE;
+                                    editNewsFrame.add(new JLabel("Categoría:"), constraints);
+                                    constraints.gridx = 1;
+                                    constraints.gridy = 3;
+                                    editNewsFrame.add(categoryBox, constraints);
 
-                                    // Añadir los campos a la ventana
-                                    editNewsFrame.add(new JLabel("Título:"));
-                                    editNewsFrame.add(titleField);
-                                    editNewsFrame.add(new JLabel("Contenido:"));
-                                    editNewsFrame.add(contentArea);
-                                    editNewsFrame.add(new JLabel("Categoría:"));
-                                    editNewsFrame.add(categoryBox);
-                                    editNewsFrame.add(premiumCheckBox);
+                                    // Casilla de verificación para la noticia premium
+                                    JCheckBox premiumCheckBox = new JCheckBox("Noticia Premium", noticiaSeleccionada.isNoticiaPremium());
+                                    constraints.gridx = 0;
+                                    constraints.gridy = 4;
+                                    constraints.gridwidth = 2;
+                                    editNewsFrame.add(premiumCheckBox, constraints);
 
                                     // Botón para confirmar la edición de la noticia
                                     JButton confirmButton = new JButton("Actualizar Noticia");
+                                    constraints.gridx = 0;
+                                    constraints.gridy = 5;
+                                    constraints.gridwidth = 2;
+                                    constraints.anchor = GridBagConstraints.CENTER;
+                                    editNewsFrame.add(confirmButton, constraints);
+
                                     confirmButton.addActionListener(new ActionListener() {
                                         @Override
                                         public void actionPerformed(ActionEvent e) {
@@ -565,7 +612,6 @@ public class Main {
                                         }
                                     });
 
-                                    editNewsFrame.add(confirmButton);
                                     editNewsFrame.setVisible(true);
                                 }
                             }
