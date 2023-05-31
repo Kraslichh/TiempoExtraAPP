@@ -453,13 +453,22 @@ public class Noticia extends ElementoConNombre {
                     JLabel autorLabel = new JLabel("Autor: " + noticia.getAutor().getNombreUsuario());
                     autorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
                     autorLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear el autor a la izquierda
+                    
+                 // Premium
+                    if (noticia.isNoticiaPremium()) {
+                        JLabel premiumLabel = new JLabel("<html><b>Premium:</b> " + noticia.isNoticiaPremium());
+                        premiumLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                        premiumLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Alinear el autor a la izquierda
+                        infoPanel.add(premiumLabel);
+
+                    }
 
                     // Agregar componentes al panel de información
                     infoPanel.add(tituloLabel);
                     infoPanel.add(contenidoLabel);
                     infoPanel.add(fechaLabel);
                     infoPanel.add(autorLabel);
-
+                    
                     // Agregar el panel de información al panel de la noticia correspondiente
                     noticiaPanel.add(infoPanel, BorderLayout.CENTER);
 
