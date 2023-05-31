@@ -242,14 +242,68 @@ public class Main {
                                     JPanel panel = new JPanel();
                                     suscripcionWindow.add(panel);
 
-                                    JLabel categoriaLabel = new JLabel("Categoría: " + categoria);
+                                    //JLabel categoriaLabel = new JLabel("Categoría: " + categoria);
                                     JLabel fechaInicioLabel = new JLabel("Fecha de inicio: " + fechaInicio);
                                     JLabel fechaFinLabel = new JLabel("Fecha de fin: " + fechaFin);
 
-                                    panel.add(categoriaLabel);
+                                   // panel.add(categoriaLabel);
                                     panel.add(fechaInicioLabel);
                                     panel.add(fechaFinLabel);
+                                    
+                                    // Crear botones
+                                    JButton buttonEditar = new JButton("Editar Suscripción");
+                                    JButton buttonEliminar = new JButton("Eliminar Suscripción");
 
+                                    // Configurar las acciones de los botones
+                                    buttonEditar.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            // Obtener todas las categorías disponibles de la base de datos
+                                            List<Categoria> categoriasDisponibles = Suscripcion.obtenerCategoriasDisponibles();
+                                            // Convertir la lista de categorías en un array
+                                            Categoria[] categoriasArray = categoriasDisponibles.toArray(new Categoria[0]);
+
+                                            // Permitir al usuario seleccionar una categoría de las disponibles
+                                            Categoria nuevaCategoria = (Categoria) JOptionPane.showInputDialog(
+                                                    null,
+                                                    "Seleccione una nueva categoría:",
+                                                    "Editar Suscripción",
+                                                    JOptionPane.QUESTION_MESSAGE,
+                                                    null,
+                                                    categoriasArray,
+                                                    categoriasArray[0]
+                                            );
+
+                                            if (nuevaCategoria != null) {
+                                                // Aquí puedes realizar el cambio de la categoría de la suscripción
+                                                Suscripcion.editarCategoriaSuscripcion(usuarioId, nuevaCategoria);
+
+                                                // Mostrar un mensaje al usuario
+                                                JOptionPane.showMessageDialog(null, "Suscripción editada correctamente.");
+                                            }
+                                        }
+                                    });
+
+                                    buttonEliminar.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            // Eliminar la suscripción
+                                            Suscripcion.eliminarSuscripcion(usuarioId);
+
+                                            // Mostrar un mensaje al usuario
+                                            JOptionPane.showMessageDialog(null, "Suscripción eliminada. Cierra la sesión para ver los cambios.");
+                                        }
+                                    });
+                                    // Añadir los botones al panel de botones
+
+
+                                    JPanel buttonsPanel = new JPanel(); // panel para los botones
+                                    buttonsPanel.setLayout(new FlowLayout());
+                                    buttonsPanel.add(buttonEditar);
+                                    buttonsPanel.add(buttonEliminar);
+
+                                    // Añadir el panel de botones al panel principal
+                                    panel.add(buttonsPanel);
                                     suscripcionWindow.setVisible(true);
                                 } catch (Exception ex) {
                                     JOptionPane.showMessageDialog(null, "Error al obtener la información de la suscripción premium: " + ex.getMessage());
@@ -284,19 +338,19 @@ public class Main {
                                 JComboBox<Categoria> categoriaBox = new JComboBox<>(Categoria.values());
 
                                 // Añadiendo las opciones de suscripción a suscripcionBox.
-                                suscripcionBox.addItem("Suscripción Mensual");
-                                suscripcionBox.addItem("Suscripción Anual");
+                                suscripcionBox.addItem("Suscripción Mensual (10 euros/mes)");
+                                suscripcionBox.addItem("Suscripción Anual (100 euros/año)");
 
                                 JButton aceptarButton = new JButton("Aceptar");
                                 aceptarButton.addActionListener(new ActionListener() {
                                     @Override
                                     public void actionPerformed(ActionEvent e) {
                                         String tipoSuscripcion = (String) suscripcionBox.getSelectedItem();
-                                        float precioPorMes = 10.0f; // Precio predefinido
+                                        float precioPorMes = tipoSuscripcion.startsWith("Suscripción Mensual") ? 10.0f : 100.0f; // Obtener el precio según el tipo de suscripción
                                         Categoria categoria = (Categoria) categoriaBox.getSelectedItem();
 
                                         LocalDate fechaInicio = LocalDate.now();
-                                        LocalDate fechaFin = tipoSuscripcion.equals("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
+                                        LocalDate fechaFin = tipoSuscripcion.startsWith("Suscripción Mensual") ? fechaInicio.plusMonths(1) : fechaInicio.plusYears(1);
 
                                         int usuarioId = 1; // Deberías obtener el ID del usuario actual
                                         try {
@@ -321,7 +375,7 @@ public class Main {
                                             ex.printStackTrace();
                                         }
 
-                                        JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! Ya puedes leer las noticias exclusivas.");
+                                        JOptionPane.showMessageDialog(suscripcionWindow, "¡Gracias por obtener tu premium! En cuanto inicies sesion de nuevo veras los cambios aplicados.");
                                         suscripcionWindow.dispose();
                                     }
                                 });
