@@ -8,6 +8,8 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineEvent;
 import javax.swing.*;
 
+import com.toedter.calendar.JCalendar;
+
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
 import excepciones.ConexionFallidaException;
@@ -17,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -28,13 +31,24 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.LocalDate;
 import clases.Suscripcion;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.text.SimpleDateFormat;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import javax.swing.JOptionPane;
 
 
 public class Main {
@@ -735,6 +749,60 @@ suscripcionWindow.setVisible(true);
                     JScrollPane scrollPane = new JScrollPane(newsPanel);
                     scrollPane.setBounds(50, 200, 900, 450);
                     userWindow.add(scrollPane);
+
+                 // Agregar un JLabel para el título del calendario
+                    JLabel calendarTitle = new JLabel("Calendario Deportivo");
+                    calendarTitle.setForeground(Color.WHITE); // Establecer el color del texto en blanco
+                    calendarTitle.setBounds(960, 520, 200, 30); // Ajustar la posición y el tamaño según sea necesario
+                    backgroundLabel.add(calendarTitle);
+
+                    // Agregar un JCalendar
+                    JCalendar jCalendar = new JCalendar();
+                    jCalendar.setBounds(960, 550, 200, 200); // Ajustar el tamaño y la posición según sea necesario
+                    backgroundLabel.add(jCalendar);
+
+                 // Crear una lista ficticia de eventos para cada día del año
+                    List<String> eventDates = new ArrayList<>();
+                    Map<String, String> eventMessages = new HashMap<>();
+
+                    // Categorías de eventos
+                    List<String> categories = Arrays.asList("Partido de fútbol nacional", "Partido de fútbol internacional", "Baloncesto nacional", "Baloncesto internacional", "UFC");
+
+                    Random random = new Random();
+
+                    for (int month = 1; month <= 12; month++) {
+                        for (int day = 1; day <= 15; day++) {
+                            String date = String.format("2023-%02d-%02d", month, day);
+                            String category = categories.get(random.nextInt(categories.size()));
+                            String message = "Evento del día " + date + ": " + category;
+                            eventDates.add(date);
+                            eventMessages.put(date, message);
+                        }
+                    }
+
+                    // Cuando se selecciona una fecha en el JCalendar...
+                    jCalendar.addPropertyChangeListener(new PropertyChangeListener() {
+                        @Override
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if (evt.getPropertyName().equals("calendar")) {
+                                // Convertir la fecha seleccionada a una cadena en el formato "YYYY-MM-DD"
+                                String selectedDate = new SimpleDateFormat("yyyy-MM-dd").format(((Calendar) evt.getNewValue()).getTime());
+
+                                // Verificar si la fecha seleccionada es una fecha de evento
+                                if (eventDates.contains(selectedDate)) {
+                                    // Obtener el mensaje del evento
+                                    String message = eventMessages.get(selectedDate);
+                                    if (message != null) {
+                                        // Si hay un mensaje para la fecha seleccionada, mostrarlo
+                                        JOptionPane.showMessageDialog(jCalendar, message);
+                                    } else {
+                                        // Si no hay mensaje, mostrar un mensaje genérico
+                                        JOptionPane.showMessageDialog(jCalendar, "Evento en esta fecha!");
+                                    }
+                                }
+                            }
+                        }
+                    });
 
                     // Obtener y mostrar las noticias
                     Noticia.actualizarNoticias(userWindow);
