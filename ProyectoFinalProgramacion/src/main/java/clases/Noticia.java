@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -13,6 +14,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,6 +30,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -36,6 +40,7 @@ import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 
 import conector.DatabaseConnector;
 import enumeraciones.Categoria;
@@ -502,21 +507,22 @@ public class Noticia extends ElementoConNombre {
         JFrame detallesNoticiaFrame = new JFrame("Detalles de la Noticia");
         detallesNoticiaFrame.setSize(400, 400);
         detallesNoticiaFrame.setLocationRelativeTo(null);
-        
+
         // Crear un panel principal
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
-        
+
         // Crear y configurar los componentes de la noticia
-        JLabel tituloLabel = new JLabel(noticia.getNombre());
+        JLabel tituloLabel = new JLabel("<html><b>Título:</b> " + noticia.getNombre() + "</html>");
         tituloLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        tituloLabel.setHorizontalAlignment(JLabel.LEFT);
 
         JTextArea contenidoTextArea = new JTextArea(noticia.getContenido());
         contenidoTextArea.setFont(new Font("Arial", Font.PLAIN, 14));
         contenidoTextArea.setEditable(false);
         contenidoTextArea.setLineWrap(true);
         contenidoTextArea.setWrapStyleWord(true);
-        
+
         JLabel fechaLabel = new JLabel("Fecha: " + noticia.getFechaPublicacion());
         fechaLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 
@@ -528,7 +534,33 @@ public class Noticia extends ElementoConNombre {
         mainPanel.add(contenidoTextArea);
         mainPanel.add(fechaLabel);
         mainPanel.add(autorLabel);
-        
+
+     // Crear el botón "Más Información"
+        JButton masInformacionButton = new JButton("Más Información");
+        masInformacionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Mostrar ventana emergente
+                JOptionPane.showMessageDialog(detallesNoticiaFrame,
+                        "Miguel, espero que te guste este periódico deportivo. Está hecho por mí la web y los reportajes por unos amigos míos de la UMA. ¡Espero que te guste!",
+                        "Mensaje para Miguel",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Cambiar el texto del botón "Aceptar" por "¡VAMOH A VER ESO!"
+                UIManager.put("OptionPane.okButtonText", "¡VAMOH A VER ESO!");
+
+                String url = "https://40446934.servicio-online.net/wordpress/"; // Reemplaza con la URL real
+                try {
+                    Desktop.getDesktop().browse(new URI(url));
+                } catch (IOException | URISyntaxException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        // Añadir el botón al panel principal
+        mainPanel.add(masInformacionButton);
+
         // Añadir el panel principal al frame
         detallesNoticiaFrame.add(mainPanel);
 
