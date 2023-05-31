@@ -292,6 +292,15 @@ public class Main {
 
                                             // Mostrar un mensaje al usuario
                                             JOptionPane.showMessageDialog(null, "Suscripción eliminada. Cierra la sesión para ver los cambios.");
+                                            try {
+                                                String soundFilePath = "sad.wav";
+                                                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFilePath));
+                                                Clip clip = AudioSystem.getClip();
+                                                clip.open(audioInputStream);
+                                                clip.start();
+                                            } catch (Exception ex) {
+                                                ex.printStackTrace();
+                                            }
                                         }
                                     });
                                     // Añadir los botones al panel de botones
