@@ -53,9 +53,10 @@ import javax.swing.JOptionPane;
 
 public class Main {
     public static void main(String[] args) {
-        JFrame frame = new JFrame("TiempoExtra inicio de sesión");
-        frame.setSize(800, 800);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	JFrame frame = new JFrame("TiempoExtra inicio de sesión");
+    	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	frame.setLayout(new GridLayout(1, 1)); // Configura el administrador de diseño GridLayout con 1 fila y 1 columna
+
 
         JPanel panel = new JPanel();
         frame.add(panel);
@@ -900,7 +901,9 @@ suscripcionWindow.setVisible(true);
 
             registerFrame.setVisible(true);
         });
-
+        frame.setMinimumSize(new Dimension(800, 800)); // Establece el tamaño mínimo del marco a 800x800
+        frame.pack(); // Ajusta el tamaño del marco según los componentes dentro de él
+        frame.setResizable(false); // Desactiva la capacidad de cambiar el tamaño del marco
         frame.setVisible(true);
         Noticia.actualizarNoticias(frame);
     }
