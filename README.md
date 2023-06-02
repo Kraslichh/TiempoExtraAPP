@@ -4,6 +4,10 @@
 
 TiempoExtra es una aplicación de escritorio avanzada, desarrollada en Java y equipada con una interfaz gráfica de usuario vibrante y amigable. Con animaciones coloridas y efectos de sonido en los botones, proporciona una experiencia única para los amantes de los deportes.
 
+### Contraseña y Usuario de la base de datos
+- **Usuario:** root
+- **Contraseña:** Ninguna no tiene contraseña.
+- 
 ## Características
 
 ### Categorías de Suscripción
