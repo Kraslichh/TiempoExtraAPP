@@ -7,7 +7,6 @@ TiempoExtra es una aplicación de escritorio avanzada, desarrollada en Java y eq
 ### Contraseña y Usuario de la base de datos
 - **Usuario:** root
 - **Contraseña:** Ninguna no tiene contraseña.
-- 
 ## Características
 
 ### Categorías de Suscripción
